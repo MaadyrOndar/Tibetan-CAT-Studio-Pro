@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Редактор словаря — Tibetan CAT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tibetan:wght@400;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --muted: #64748b;
+            --accent: #d97706;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Noto Serif', serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .top-bar {
+            height: 56px;
+            background: #1e293b;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            gap: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .logo { font-size: 16px; font-weight: 700; white-space: nowrap; }
+        .logo span { color: var(--accent); }
+        .top-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .btn {
+            background: var(--primary); color: #fff; border: none;
+            padding: 7px 12px; font-size: 12px; font-weight: 500;
+            border-radius: 6px; cursor: pointer; font-family: sans-serif;
+            white-space: nowrap;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-secondary { background: #334155; border: 1px solid #475569; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-green { background: #10b981; }
+        .btn-green:hover { background: #059669; }
+        .btn-danger { background: transparent; color: var(--danger); border: 1px solid #fca5a5; }
+        .btn-danger:hover { background: #fef2f2; }
+        a.back { color: #94a3b8; font-size: 13px; text-decoration: none; font-family: sans-serif; margin-right: 8px; }
+        a.back:hover { color: #fff; }
+        .wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 80px; }
+        .meta {
+            display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+            margin-bottom: 16px; font-family: sans-serif; font-size: 13px; color: var(--muted);
+        }
+        .meta strong { color: var(--text); }
+        .search {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            outline: none;
+            font-family: inherit;
+        }
+        .search:focus { border-color: var(--primary); }
+        .add-card {
+            background: #fff;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .add-card h2 { font-size: 14px; margin-bottom: 10px; font-family: sans-serif; }
+        .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+        .row input, .row textarea {
+            flex: 1;
+            min-width: 140px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+        }
+        .row input:focus, .row textarea:focus { border-color: var(--primary); }
+        .row textarea { min-height: 60px; resize: vertical; }
+        .term-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+        .term-card .word {
+            font-family: 'Noto Serif Tibetan', serif;
+            font-size: 20px;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .def-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 0;
+            border-top: 1px solid #f1f5f9;
+        }
+        .def-row:first-of-type { border-top: none; }
+        .def-text { flex: 1; font-size: 14px; line-height: 1.5; }
+        .def-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .icon-btn {
+            border: none; background: transparent; cursor: pointer;
+            color: var(--muted); font-size: 14px; padding: 2px 6px; border-radius: 4px;
+        }
+        .icon-btn:hover { background: #f1f5f9; color: var(--text); }
+        .icon-btn.del:hover { color: var(--danger); background: #fef2f2; }
+        .empty { text-align: center; color: var(--muted); padding: 40px; font-size: 14px; }
+        .edit-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--primary);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo">Tibetan <span>CAT</span> — редактор словаря</div>
+        <div class="top-actions">
+            <a class="back" href="https://herel.ru/app/cat-tool-tibetan.html">← CAT Studio</a>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('file-in').click()">Открыть .tdict</button>
+            <button type="button" class="btn btn-green" onclick="saveDict()">Сохранить .tdict</button>
+            <button type="button" class="btn btn-secondary" onclick="newDict()">Новый</button>
+            <input type="file" id="file-in" accept=".tdict" style="display:none" onchange="openFile(this)">
+        </div>
+    </div>
+    <div class="wrap">
+        <div class="meta">
+            <span>Файл: <strong id="file-label">— новый —</strong></span>
+            <span>Терминов: <strong id="stat-words">0</strong></span>
+            <span>Определений: <strong id="stat-defs">0</strong></span>
+        </div>
+
+        <input type="search" class="search" id="filter" placeholder="Поиск по термину или переводу…" oninput="renderList()">
+
+        <div class="add-card">
+            <h2>Добавить статью</h2>
+            <div class="row">
+                <input type="text" id="new-word" placeholder="Термин (тибетский)" style="font-family:'Noto Serif Tibetan',serif;font-size:16px;">
+            </div>
+            <div class="row">
+                <textarea id="new-def" placeholder="Перевод / определение"></textarea>
+            </div>
+            <button type="button" class="btn" onclick="addEntry()">Добавить</button>
+        </div>
+
+        <div id="list"></div>
+    </div>
+
+    <script>
+        // dict: { word: [ "def1", "def2" ] }
+        let dict = {};
+        let currentFileName = '';
+
+        function escapeHtml(t) {
+            return String(t)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function normalizeIncoming(data) {
+            const out = {};
+            for (const word of Object.keys(data)) {
+                const items = Array.isArray(data[word]) ? data[word] : [data[word]];
+                out[word] = items.map(def => {
+                    if (typeof def === 'object' && def !== null) return String(def.txt != null ? def.txt : JSON.stringify(def));
+                    return String(def);
+                });
+            }
+            return out;
+        }
+
+        function openFile(input) {
+            const f = input.files && input.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    dict = normalizeIncoming(JSON.parse(e.target.result));
+                    currentFileName = f.name.replace(/\.tdict$/i, '');
+                    document.getElementById('file-label').textContent = currentFileName + '.tdict';
+                    renderList();
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            };
+            reader.readAsText(f, 'UTF-8');
+            input.value = '';
+        }
+
+        function newDict() {
+            if (Object.keys(dict).length && !confirm('Очистить текущий словарь?')) return;
+            dict = {};
+            currentFileName = '';
+            document.getElementById('file-label').textContent = '— новый —';
+            renderList();
+        }
+
+        function addEntry() {
+            const word = document.getElementById('new-word').value.trim();
+            const def = document.getElementById('new-def').value.trim();
+            if (!word || !def) {
+                alert('Укажите термин и перевод.');
+                return;
+            }
+            if (!dict[word]) dict[word] = [];
+            if (dict[word].includes(def)) {
+                alert('Такое определение уже есть.');
+                return;
+            }
+            dict[word].push(def);
+            document.getElementById('new-word').value = '';
+            document.getElementById('new-def').value = '';
+            renderList();
+        }
+
+        function deleteDef(word, idx) {
+            if (!dict[word]) return;
+            dict[word].splice(idx, 1);
+            if (!dict[word].length) delete dict[word];
+            renderList();
+        }
+
+        function deleteWord(word) {
+            if (!confirm('Удалить термин «' + word + '» целиком?')) return;
+            delete dict[word];
+            renderList();
+        }
+
+        function startEditDef(word, idx) {
+            const el = document.getElementById('def-' + encodeURIComponent(word) + '-' + idx);
+            if (!el) return;
+            const cur = dict[word][idx];
+            el.innerHTML = '<input class="edit-input" id="edit-inp" value="' + escapeHtml(cur).replace(/"/g, '&quot;') + '">' +
+                '<button type="button" class="btn" style="margin-top:6px;padding:4px 10px;" onclick="commitEditDef(\'' +
+                escapeHtml(word).replace(/'/g, "\\'") + '\',' + idx + ')">OK</button>';
+            const inp = document.getElementById('edit-inp');
+            if (inp) { inp.focus(); inp.select(); }
+        }
+
+        function commitEditDef(word, idx) {
+            const inp = document.getElementById('edit-inp');
+            if (!inp) return;
+            const v = inp.value.trim();
+            if (!v) { alert('Пустое определение'); return; }
+            dict[word][idx] = v;
+            renderList();
+        }
+
+        function renderList() {
+            const q = (document.getElementById('filter').value || '').trim().toLowerCase();
+            const words = Object.keys(dict).sort((a, b) => a.localeCompare(b, 'bo'));
+            let defCount = 0;
+            words.forEach(w => { defCount += dict[w].length; });
+            document.getElementById('stat-words').textContent = words.length;
+            document.getElementById('stat-defs').textContent = defCount;
+
+            const list = document.getElementById('list');
+            const filtered = words.filter(w => {
+                if (!q) return true;
+                if (w.toLowerCase().includes(q)) return true;
+                return dict[w].some(d => d.toLowerCase().includes(q));
+            });
+            if (!filtered.length) {
+                list.innerHTML = '<div class="empty">Нет статей' + (q ? ' по запросу' : '') + '</div>';
+                return;
+            }
+            list.innerHTML = filtered.map(word => {
+                const defs = dict[word].map((d, idx) =>
+                    '<div class="def-row">' +
+                    '<div class="def-text" id="def-' + encodeURIComponent(word) + '-' + idx + '">' + escapeHtml(d) + '</div>' +
+                    '<div class="def-actions">' +
+                    '<button type="button" class="icon-btn" title="Изменить" onclick="startEditDef(\'' +
+                        escapeHtml(word).replace(/'/g, "\\'") + '\',' + idx + ')">✎</button>' +
+                    '<button type="button" class="icon-btn del" title="Удалить" onclick="deleteDef(\'' +
+                        escapeHtml(word).replace(/'/g, "\\'") + '\',' + idx + ')">×</button>' +
+                    '</div></div>'
+                ).join('');
+                return '<div class="term-card">' +
+                    '<div class="word">' + escapeHtml(word) +
+                    ' <button type="button" class="icon-btn del" style="float:right;font-size:16px;" title="Удалить термин" onclick="deleteWord(\'' +
+                    escapeHtml(word).replace(/'/g, "\\'") + '\')">×</button></div>' +
+                    defs + '</div>';
+            }).join('');
+        }
+
+        function saveDict() {
+            if (!Object.keys(dict).length) {
+                alert('Словарь пуст.');
+                return;
+            }
+            let name = currentFileName || prompt('Имя файла (без .tdict):', 'dictionary');
+            if (!name) return;
+            name = name.replace(/\.tdict$/i, '');
+            currentFileName = name;
+            document.getElementById('file-label').textContent = name + '.tdict';
+            const blob = new Blob([JSON.stringify(dict, null, 2)], { type: 'application/json;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = name + '.tdict';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        renderList();
+    </script>
+</body>
+</html>

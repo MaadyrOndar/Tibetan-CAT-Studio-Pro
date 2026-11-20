@@ -1,0 +1,3348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Tibetan CAT Studio Pro v3</title>
+    <!-- Подключаем профессиональные шрифты Noto Serif -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tibetan:wght@400;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --accent: #d97706;
+            --accent-light: #fef3c7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Serif', serif, Noto Serif Tibetan;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Верхняя панель */
+        .top-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0; min-height: 64px;
+            height: auto;
+            background: #1e293b; color: white;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            z-index: 100;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .logo { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0; }
+        .logo span { color: var(--accent); }
+        .logo .logo-full { display: inline; }
+        .logo .logo-short { display: none; }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 0 6px;
+            border-right: 1px solid #475569;
+        }
+        .btn-group:last-child { border-right: none; padding-right: 0; }
+        .btn-group:first-of-type { padding-left: 0; }
+
+        .btn {
+            background: var(--primary); color: white; border: none;
+            padding: 7px 11px; font-size: 12px; font-weight: 500;
+            border-radius: 6px; cursor: pointer; transition: all 0.2s;
+            white-space: nowrap;
+            font-family: sans-serif;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-secondary { background: #334155; border: 1px solid #475569; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-accent { background: var(--accent); }
+        .btn-accent:hover { background: #b45309; }
+        .btn-green { background: #10b981; }
+        .btn-green:hover { background: #059669; }
+        .btn-help { background: #6366f1; }
+        .btn-help:hover { background: #4f46e5; }
+        .btn .btn-short { display: none; }
+        .btn .btn-full { display: inline; }
+
+        /* Выпадающее меню — без щели, список «прилипает» к кнопке */
+        .menu-drop {
+            position: relative;
+            display: inline-flex;
+        }
+        .menu-drop > .btn { cursor: default; }
+        .menu-drop-list {
+            display: none;
+            position: absolute;
+            top: calc(100% - 2px);
+            left: 0;
+            min-width: 190px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 8px 6px 6px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+            z-index: 200;
+            flex-direction: column;
+            gap: 2px;
+        }
+        /* Невидимый «мост» над списком, чтобы курсор не терял hover */
+        .menu-drop-list::before {
+            content: '';
+            position: absolute;
+            left: 0; right: 0;
+            top: -12px;
+            height: 14px;
+        }
+        .menu-drop:hover > .menu-drop-list,
+        .menu-drop:focus-within > .menu-drop-list {
+            display: flex;
+        }
+        .menu-drop-list .btn {
+            width: 100%;
+            text-align: left;
+            justify-content: flex-start;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        .menu-drop-list .btn:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+        .menu-drop-list .btn-accent:hover { background: #b45309; border-color: #b45309; }
+
+        /* Компактная панель на узких экранах */
+        @media (max-width: 1100px) {
+            .top-bar { padding: 6px 10px; }
+            .logo { font-size: 14px; }
+            .btn {
+                padding: 6px 8px;
+                font-size: 11px;
+                min-width: 34px;
+                text-align: center;
+            }
+            .btn-group { padding: 0 3px; gap: 3px; }
+            .stat-chip { padding: 3px 7px; font-size: 11px; }
+            .progress-stats { gap: 4px; margin-right: 4px; }
+        }
+        @media (max-width: 800px) {
+            .logo .logo-full { display: none; }
+            .logo .logo-short { display: inline; }
+            .btn-group { border-right: none; }
+            .stat-chip .stat-label { display: none; }
+        }
+
+        /* Напоминание о сохранении */
+        .save-reminder {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 250;
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #f59e0b;
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+            max-width: 320px;
+            font-family: sans-serif;
+            font-size: 13px;
+            line-height: 1.45;
+            gap: 10px;
+            flex-direction: column;
+        }
+        .save-reminder.open { display: flex; }
+        .save-reminder strong { color: #fbbf24; }
+        .save-reminder-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .save-reminder-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Плавающая кнопка перехода к сегменту */
+        .jump-fab {
+            position: fixed;
+            left: 12px;
+            bottom: 24px;
+            z-index: 95;
+            font-family: sans-serif;
+        }
+        .jump-fab-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: #1e293b;
+            color: #fbbf24;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            transition: transform 0.15s, background 0.15s;
+        }
+        .jump-fab-btn:hover { background: #334155; transform: scale(1.05); }
+        .jump-popup {
+            display: none;
+            position: absolute;
+            left: 0;
+            bottom: 56px;
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            gap: 6px;
+            align-items: center;
+            min-width: 160px;
+        }
+        .jump-popup.open { display: flex; }
+        .jump-popup input {
+            width: 72px;
+            padding: 7px 8px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        .jump-popup input:focus { border-color: #fbbf24; }
+        .jump-popup .btn { padding: 7px 12px; }
+
+        /* Главный контейнер */
+        .main-container {
+            display: flex;
+            width: 100%;
+            margin-top: 64px;
+            height: calc(100vh - 64px);
+            position: relative;
+        }
+
+        /* Левая панель рабочего пространства */
+        .workspace {
+            width: 70%;
+            padding: 40px;
+            overflow-y: auto;
+            background: var(--bg-card);
+            display: flex;
+            justify-content: center;
+        }
+
+        .segments-list {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 36px;
+            padding-bottom: 120px;
+        }
+
+        /* Линия ресайзера панелей */
+        .resizer {
+            width: 8px;
+            background: var(--border);
+            cursor: col-resize;
+            position: relative;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+        .resizer:hover, .resizer.active { background: var(--primary); }
+
+        /* Сегменты: номер слева от цветной линии */
+        .segment {
+            display: flex;
+            align-items: flex-start;
+            gap: 0;
+            background: var(--bg-card);
+            position: relative;
+        }
+
+        .segment-number {
+            font-size: 11px;
+            color: var(--text-main);
+            font-family: monospace;
+            text-align: right;
+            white-space: nowrap;
+            user-select: none;
+            line-height: 1.3;
+        }
+        .segment-number .num-total {
+            color: var(--text-muted);
+            opacity: 0.45;
+        }
+        .segment-side {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+            width: 78px;
+            min-width: 78px;
+            flex-shrink: 0;
+            padding-top: 4px;
+            padding-right: 6px;
+        }
+        .note-btn, .edit-src-btn, .bookmark-btn, .add-seg-btn, .del-seg-btn {
+            border-radius: 5px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 10px;
+            font-family: sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.15s;
+            padding: 2px 5px;
+            line-height: 1.2;
+            opacity: 0.4;
+            white-space: nowrap;
+        }
+        .note-btn:hover, .edit-src-btn:hover, .bookmark-btn:hover, .add-seg-btn:hover, .del-seg-btn:hover {
+            opacity: 0.9; color: #64748b; border-color: #e2e8f0;
+            background: rgba(248,250,252,0.95);
+        }
+        .add-seg-btn:hover { color: #059669; border-color: #a7f3d0; }
+        .del-seg-btn:hover { color: #dc2626; border-color: #fca5a5; }
+        .note-btn.has-note {
+            opacity: 1;
+            color: #475569;
+        }
+        .edit-src-btn.editing {
+            opacity: 1;
+            color: #fff;
+            border-color: #4f46e5;
+            background: #4f46e5;
+        }
+        .cancel-edit-btn {
+            opacity: 1 !important;
+            color: #fff !important;
+            border-color: #ef4444 !important;
+            background: #ef4444 !important;
+        }
+        .cancel-edit-btn:hover {
+            background: #dc2626 !important;
+            border-color: #dc2626 !important;
+            color: #fff !important;
+        }
+        .segment.seg-editing .source-line {
+            min-height: 72px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 2px dashed #4f46e5;
+            border-radius: 8px;
+            outline: none;
+        }
+        .segment.seg-editing .target-line {
+            min-height: 56px;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border: 1px solid #c7d2fe;
+            border-radius: 8px;
+            color: #0f172a;
+        }
+        .segment.seg-editing .segment-body {
+            border-left-color: #4f46e5;
+        }
+        .bookmark-btn.active {
+            opacity: 1;
+            color: #b45309;
+        }
+        .bookmark-btn .bm-icon {
+            font-size: 14px;
+            line-height: 1;
+        }
+        .note-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+        }
+        .source-line.editing-src {
+            outline: 2px dashed #4f46e5;
+            outline-offset: 4px;
+            border-radius: 4px;
+            cursor: text;
+        }
+
+        /* Счётчики прогресса */
+        .progress-stats {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 0;
+            font-family: sans-serif;
+            font-size: 12px;
+            flex-wrap: nowrap;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #334155;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            white-space: nowrap;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .stat-chip.pending {
+            cursor: pointer;
+            background: #422006;
+            border-color: #b45309;
+            color: #fde68a;
+        }
+        .stat-chip.pending:hover { background: #78350f; }
+        .stat-chip.done {
+            cursor: pointer;
+            background: #064e3b;
+            border-color: #059669;
+            color: #a7f3d0;
+        }
+        .stat-chip.done:hover { background: #065f46; }
+        .stat-chip.notes {
+            cursor: pointer;
+            background: #042f2e;
+            border-color: #0d9488;
+            color: #99f6e4;
+        }
+        .stat-chip.notes:hover { background: #115e59; }
+        .stat-chip.bookmarks {
+            cursor: pointer;
+            background: #451a03;
+            border-color: #d97706;
+            color: #fde68a;
+        }
+        .stat-chip.bookmarks:hover { background: #78350f; }
+        .stat-chip .stat-n { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        /* Список непереведённых */
+        .pending-panel {
+            display: none;
+            position: fixed;
+            top: 64px;
+            left: 0;
+            bottom: 0;
+            width: 70%;
+            max-width: 100%;
+            background: #fff;
+            border-right: 1px solid var(--border);
+            box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+            z-index: 90;
+            flex-direction: column;
+        }
+        .pending-panel.open { display: flex; }
+        .pending-panel-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+        .pending-panel-header button {
+            border: none; background: transparent; font-size: 18px;
+            cursor: pointer; color: var(--text-muted); line-height: 1;
+        }
+        .pending-panel-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 20px 24px;
+        }
+        .pending-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 12px 14px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Noto Serif', serif;
+            color: var(--text-main);
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .pending-item:hover { background: #f1f5f9; }
+        .pending-item .pi-num {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .pending-item .pi-src {
+            font-family: 'Noto Serif Tibetan', serif;
+            font-size: 16px;
+            color: var(--text-main);
+            display: block;
+            white-space: normal;
+            word-break: break-word;
+            margin-top: 4px;
+            line-height: 1.6;
+        }
+        .pending-item .pi-body {
+            display: block;
+            margin-top: 6px;
+            font-size: 14px;
+            line-height: 1.55;
+            color: #334155;
+            font-family: 'Noto Serif', serif;
+            word-break: break-word;
+        }
+        .pending-item .pi-body b, .pending-item .pi-body strong { font-weight: 700; }
+        .pending-item .pi-body i, .pending-item .pi-body em { font-style: italic; }
+        .pending-item .pi-body u { text-decoration: underline; }
+        .pending-item .pi-body .hl,
+        .pending-item .pi-body .hl-yellow,
+        .pending-item .pi-body mark,
+        .pending-item .pi-body span[style*="background"] {
+            background-color: #fef08c !important;
+            border-radius: 2px;
+        }
+        .pending-item .pi-body .hl-red { background-color: #fecaca !important; border-radius: 2px; }
+        .pending-item .pi-body .hl-green { background-color: #bbf7d0 !important; border-radius: 2px; }
+        .pending-item .pi-body ul, .pending-item .pi-body ol {
+            margin: 4px 0 4px 0;
+            padding-left: 1.4em;
+            list-style-position: outside;
+        }
+        .pending-item .pi-flags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .pending-item .pi-flag {
+            font-size: 10px;
+            font-family: sans-serif;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 999px;
+            line-height: 1.3;
+        }
+        .pi-flag.flag-done { background: #d1fae5; color: #047857; }
+        .pi-flag.flag-pending { background: #ffedd5; color: #c2410c; }
+        .pi-flag.flag-note { background: #ccfbf1; color: #0f766e; }
+        .pi-flag.flag-bm { background: #fef3c7; color: #b45309; }
+
+        /* Модалка заметки */
+        .note-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 320;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+        .note-modal-overlay.open { display: flex; }
+        .note-modal {
+            background: #fff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            padding: 20px;
+        }
+        .note-modal h3 { font-size: 15px; margin-bottom: 10px; }
+        .note-fmt-bar {
+            display: flex; flex-wrap: wrap; gap: 3px;
+            margin-bottom: 8px; padding: 4px;
+            background: #f1f5f9; border-radius: 6px;
+        }
+        .note-fmt-bar button {
+            width: 28px; height: 26px; border: none; border-radius: 4px;
+            background: transparent; cursor: pointer; font-size: 13px;
+            font-family: Georgia, serif; font-weight: 700; color: #334155;
+        }
+        .note-fmt-bar button:hover { background: #e2e8f0; }
+        .note-fmt-bar button.hl-red { color: #dc2626; }
+        .note-fmt-bar button.hl-green { color: #059669; }
+        .note-fmt-bar button.hl-yellow { color: #ca8a04; }
+        .note-modal-editor {
+            width: 100%;
+            min-height: 160px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px 12px 28px;
+            font-family: inherit;
+            font-size: 15px;
+            outline: none;
+            line-height: 1.55;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        .note-modal { max-width: 520px; }
+        #popover-term-def.note-modal-editor {
+            min-height: 120px;
+        }
+        /* Слот под панель — всегда занимает место, без «дёргания» текста */
+        .target-fmt-slot {
+            min-height: 34px;
+            height: 34px;
+            margin: 0;
+            box-sizing: border-box;
+            display: flex;
+            align-items: stretch;
+        }
+        /* Курсор в поле: при прокрутке панель остаётся у верхнего края workspace */
+        .target-fmt-slot.sticky-active {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            height: auto;
+            min-height: 34px;
+            background: var(--bg-card);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+        }
+        .target-fmt-slot .dock-fmt-bar,
+        .target-fmt-slot #fmt-toolbar {
+            width: 100%;
+            margin: 0;
+            border-radius: 6px 6px 0 0;
+            flex: 1;
+            box-sizing: border-box;
+            min-height: 34px;
+        }
+        .target-line.has-dock-fmt {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+        .note-modal-editor:focus { border-color: var(--primary); }
+        .note-modal-editor .hl-red { background: #fecaca; border-radius: 2px; }
+        .note-modal-editor .hl-green { background: #bbf7d0; border-radius: 2px; }
+        .note-modal-editor .hl-yellow, .note-modal-editor .hl, .note-modal-editor mark {
+            background: #fef08c; border-radius: 2px;
+        }
+        .note-modal-editor ul, .note-modal-editor ol {
+            margin: 0.35em 0;
+            padding-left: 1.2em;
+            list-style-position: outside;
+        }
+        .note-modal-editor li { margin: 0.15em 0; }
+        .note-modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+
+        /* Панель управления словарями */
+        .dict-manage-panel {
+            display: none;
+            position: fixed;
+            top: 64px;
+            right: 12px;
+            width: 300px;
+            max-width: 92vw;
+            max-height: calc(100vh - 80px);
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            z-index: 110;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .dict-manage-panel.open { display: flex; }
+        .dict-manage-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+        .dict-manage-header button {
+            border: none; background: transparent; font-size: 18px;
+            cursor: pointer; color: var(--text-muted); line-height: 1;
+        }
+        .dict-manage-list {
+            overflow-y: auto;
+            padding: 8px;
+            flex: 1;
+        }
+        .dict-manage-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: sans-serif;
+        }
+        .dict-manage-item:hover { background: #f1f5f9; }
+        .dict-manage-item.disabled-dict { opacity: 0.5; }
+        .dict-manage-item label {
+            flex: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dict-manage-item .dict-del {
+            border: 1px solid #fca5a5;
+            background: transparent;
+            color: #ef4444;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .dict-manage-item .dict-del:hover { background: #fef2f2; }
+        .dict-manage-empty {
+            padding: 16px;
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .segment-body {
+            flex: 1;
+            border-left: 4px solid var(--border);
+            padding: 6px 0 6px 20px;
+            transition: border-color 0.2s ease;
+        }
+        .segment.active .segment-body { border-left-color: var(--primary); }
+        .segment.confirmed .segment-body { border-left-color: #10b981; }
+
+        /* Крупный тибетский текст оригинала */
+        .source-line {
+            font-size: 26px;
+            line-height: 2.0;
+            margin-bottom: 14px;
+            color: var(--text-main);
+            font-family: 'Noto Serif Tibetan', serif;
+        }
+
+        .tagged-word {
+            background-color: var(--accent-light);
+            border-bottom: none;
+            cursor: pointer;
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+        .tagged-word:hover { background-color: #fde68a; }
+
+        /* Номера вложенных терминов — над предложением, не внутри текста */
+        .overlap-refs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+            min-height: 0;
+        }
+        .overlap-ref {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: sans-serif;
+            font-size: 11px;
+            color: #92400e;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 4px;
+            padding: 2px 6px;
+            cursor: pointer;
+            max-width: 100%;
+        }
+        .overlap-ref:hover { background: #fef3c7; border-color: var(--accent); }
+        .overlap-ref .ref-num {
+            font-weight: 700;
+            color: #fff;
+            background: var(--accent);
+            border-radius: 3px;
+            padding: 0 5px;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+        .overlap-ref .ref-word {
+            font-family: 'Noto Serif Tibetan', serif;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 180px;
+        }
+
+        /* Поле перевода под оригиналом */
+        .target-line {
+            font-size: 17px; line-height: 1.6; color: #64748b;
+            outline: none; min-height: 30px;
+            border-bottom: 1px dashed transparent;
+            padding: 4px 0 4px 8px;
+            overflow-x: auto;
+        }
+        .target-line:focus { color: #000; border-bottom-color: var(--primary); }
+        .segment.confirmed .target-line { color: #047857; font-weight: 500; }
+        .target-line b, .target-line strong { font-weight: 700 !important; }
+        .target-line i, .target-line em { font-style: italic; }
+        .target-line u { text-decoration: underline; }
+        .segment.confirmed .target-line b,
+        .segment.confirmed .target-line strong { font-weight: 700 !important; }
+        .target-line .hl {
+            background-color: #fef08c;
+            border-radius: 2px;
+        }
+        /* Красная строка + визуальный отступ между абзацами */
+        .target-line div, .target-line p {
+            text-indent: 1.5em;
+            margin: 0.65em 0 0;
+        }
+        .target-line div:first-child, .target-line p:first-child {
+            margin-top: 0;
+        }
+        .target-line ol, .target-line ul {
+            margin: 0.4em 0;
+            padding-left: 1.6em;
+            text-indent: 0;
+            list-style-position: outside;
+        }
+        .target-line li {
+            text-indent: 0;
+            margin: 0.15em 0;
+            padding-left: 0.2em;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: block; /* всегда видна — без сдвига текста при фокусе */
+            line-height: 1.4;
+            min-height: 1.4em;
+        }
+
+        /* Плавающая панель форматирования */
+        .fmt-toolbar {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 2px;
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 4px 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            z-index: 250;
+            user-select: none;
+        }
+        .fmt-toolbar.visible { display: flex; }
+        .fmt-btn {
+            width: 32px; height: 30px;
+            border: none; border-radius: 5px;
+            background: transparent; color: #e2e8f0;
+            cursor: pointer; font-size: 14px; font-weight: 700;
+            font-family: Georgia, 'Noto Serif', serif;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
+        }
+        .fmt-btn:hover { background: #334155; color: #fff; }
+        .fmt-btn.active { background: #4f46e5; color: #fff; }
+        .fmt-btn.hl-btn { color: #fbbf24; }
+        .fmt-btn.hl-btn:hover { background: #422006; }
+        .fmt-sep {
+            width: 1px; height: 18px;
+            background: #475569; margin: 0 3px;
+        }
+
+        /* Правая боковая панель */
+        .sidebar { width: 30%; background: #ffffff; display: flex; flex-direction: column; box-shadow: -2px 0 5px rgba(0,0,0,0.02); }
+        .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); background: #fafafa; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .sidebar-header h3 { font-size: 14px; font-weight: 600; color: var(--text-main); }
+        
+        .dicts-badge {
+            position: relative;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: default;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            white-space: nowrap;
+        }
+        .dicts-badge { cursor: pointer; }
+        .dicts-badge:hover { background: #e2e8f0; }
+        .dicts-tooltip {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 6px;
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.6;
+            min-width: 160px;
+            max-width: 260px;
+            z-index: 50;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+        .dicts-badge:hover .dicts-tooltip { display: block; }
+        .dicts-tooltip strong { color: #fbbf24; display: block; margin-bottom: 4px; }
+        .dicts-tooltip .dict-item { padding: 2px 0; }
+
+        .sidebar-content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+
+        /* Карточки в глоссарии */
+        .term-card { background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; padding: 26px; transition: all 0.2s; }
+        .term-card.highlight { border-color: var(--accent); background: #fffbeb; box-shadow: 0 0 0 2px #fef3c7; }
+        
+        .term-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+            font-family: 'Noto Serif Tibetan', serif;
+            margin-bottom: 10px;
+        }
+
+        .term-definition-wrapper { display: flex; flex-direction: column; gap: 0; }
+        
+        .term-definition {
+            font-size: 16px;
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 8px 0;
+            border-top: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .term-definition:first-child { border-top: none; padding-top: 0; }
+
+        .term-def-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .term-def-text {
+            flex: 1;
+            white-space: pre-wrap;
+            padding-right: 4px;
+            line-height: 2;
+			
+        }
+        .term-def-text .hl-red { background: #fecaca; border-radius: 2px; }
+        .term-def-text .hl-green { background: #bbf7d0; border-radius: 2px; }
+        .term-def-text .hl-yellow, .term-def-text .hl { background: #fef08c; border-radius: 2px; }
+        .term-def-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+            flex-shrink: 0;
+            min-width: 18px;
+        }
+        .term-source-tag {
+            font-size: 10px;
+            color: #1e40af;
+            background: #dbeafe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-family: sans-serif;
+            white-space: nowrap;
+        }
+        
+        .delete-btn {
+            width: 18px; height: 18px; color: #ef4444;
+            border: none; background: transparent; cursor: pointer;
+            font-size: 14px; font-weight: bold;
+            line-height: 1; text-align: center; padding: 0;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .term-definition:hover .delete-btn { opacity: 1; }
+        .delete-btn:hover { color: #b91c1c; }
+
+        /* Всплывающий блок привязки статьи (Popover) */
+        .popover-box {
+            position: absolute; background: #ffffff; border: 1px solid var(--border);
+            border-radius: 8px; padding: 14px; width: 320px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+            z-index: 200; display: none; flex-direction: column; gap: 8px;
+            overflow: visible;
+        }
+        .popover-title {
+            font-size: 35px;
+            font-weight: bold;
+            color: var(--accent);
+            font-family: 'Noto Serif Tibetan', serif;
+            /* Тибетские надписные/подписные не должны обрезаться */
+            overflow: visible;
+            white-space: normal;
+            word-break: break-word;
+            line-height: 2.4;
+            min-height: 1.2em;
+            padding: 4px 0 2px;
+        }
+        .input-field { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
+        .input-field:focus { border-color: var(--primary); }
+        textarea.input-field { height: 70px; resize: none; font-family: inherit; }
+
+        .no-data { color: var(--text-muted); font-size: 14px; font-style: italic; text-align: center; margin-top: 20px; }
+
+        /* Модальное окно справки */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            z-index: 300;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 640px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            background: #f8fafc;
+            border-radius: 12px 12px 0 0;
+            position: sticky;
+            top: 0;
+        }
+        .modal-header h2 { font-size: 18px; font-weight: 700; }
+        .modal-close {
+            background: none; border: none; font-size: 22px;
+            cursor: pointer; color: var(--text-muted); line-height: 1;
+            padding: 4px 8px; border-radius: 4px;
+        }
+        .modal-close:hover { background: #e2e8f0; color: #000; }
+        .modal-body { padding: 20px 24px 28px; font-size: 14px; line-height: 1.7; color: #334155; }
+        .modal-body h3 { font-size: 15px; margin: 18px 0 8px; color: var(--text-main); }
+        .modal-body h3:first-child { margin-top: 0; }
+        .modal-body ul { padding-left: 20px; margin-bottom: 8px; }
+        .modal-body li { margin-bottom: 4px; }
+        .modal-body kbd {
+            background: #f1f5f9; border: 1px solid #cbd5e1;
+            border-radius: 4px; padding: 1px 6px; font-size: 12px;
+            font-family: monospace;
+        }
+        .modal-body code {
+            background: #f1f5f9; padding: 1px 5px; border-radius: 3px;
+            font-size: 12px; font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Верхняя панель -->
+    <div class="top-bar">
+        <div class="logo">
+            <span class="logo-full">Tibetan <span>CAT Studio Pro v3</span></span>
+            <span class="logo-short">Tibetan <span>CAT</span></span>
+        </div>
+        <div class="controls">
+            <div class="progress-stats" id="progress-stats">
+                <span class="stat-chip pending" id="stat-pending" title="Не зафиксированные — нажмите для списка" onclick="toggleSidePanel('pending')">
+                    <span class="stat-label">Не перев.: </span><span class="stat-n" id="stat-pending-n">0</span>
+                </span>
+                <span class="stat-chip done" id="stat-done" title="Зафиксированные — нажмите для списка" onclick="toggleSidePanel('done')">
+                    <span class="stat-label">Готово: </span><span class="stat-n" id="stat-done-n">0</span>
+                </span>
+                <span class="stat-chip notes" id="stat-notes" title="Сегменты с заметками — нажмите для списка" onclick="toggleSidePanel('notes')">
+                    <span class="stat-label">Заметки: </span><span class="stat-n" id="stat-notes-n">0</span>
+                </span>
+                <span class="stat-chip bookmarks" id="stat-bookmarks" title="Закладки — нажмите для списка" onclick="toggleSidePanel('bookmarks')">
+                    <span class="stat-label">Закладки: </span><span class="stat-n" id="stat-bookmarks-n">0</span>
+                </span>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" title="Открыть TXT" onclick="document.getElementById('file-input').click()">Открыть TXT</button>
+            </div>
+            <div class="btn-group">
+                <div class="menu-drop">
+                    <button type="button" class="btn btn-accent">Проект ▾</button>
+                    <div class="menu-drop-list">
+                        <button type="button" class="btn btn-secondary" onclick="exportProject()">Сохранить проект</button>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('project-input').click()">Загрузить проект</button>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <div class="menu-drop">
+                    <button type="button" class="btn btn-secondary">Словарь ▾</button>
+                    <div class="menu-drop-list">
+                        <button type="button" class="btn btn-secondary" onclick="saveCurrentDictionary()">Сохранить словарь</button>
+                        <button type="button" class="btn btn-secondary" style="border-color: var(--accent);" onclick="document.getElementById('dict-input').click()">Загрузить словарь</button>
+                        <button type="button" class="btn btn-secondary" onclick="window.open('dict_editor.html','_blank')">Редактор словаря</button>
+                        <button type="button" class="btn btn-secondary" id="btn-download-dicts" onclick="/* TODO: ссылка на страницу словарей */">Скачать словари</button>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-green" title="Экспорт перевода" onclick="exportPureTranslation()">Экспорт перевода</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-help" title="Справка" onclick="openHelp()">Справка</button>
+            </div>
+            
+            <input type="file" id="file-input" accept=".txt" style="display:none" onchange="loadTxtFile(this)">
+            <input type="file" id="project-input" accept=".tcat" style="display:none" onchange="loadProjectFile(this)">
+            <input type="file" id="dict-input" accept=".tdict" multiple style="display:none" onchange="loadDictionaryFile(this)">
+        </div>
+    </div>
+
+    <!-- Быстрый переход к сегменту -->
+    <div class="jump-fab" id="jump-fab">
+        <div class="jump-popup" id="jump-popup">
+            <input type="number" id="jump-input" min="1" placeholder="№" title="Номер сегмента">
+            <button type="button" class="btn btn-accent" onclick="jumpToSegmentByNumber()">OK</button>
+        </div>
+        <button type="button" class="jump-fab-btn" id="jump-fab-btn" title="Перейти к сегменту по номеру" onclick="toggleJumpPopup()">№..?</button>
+    </div>
+
+    <!-- Напоминание сохранить проект -->
+    <div class="save-reminder" id="save-reminder" role="status">
+        <div><strong>Напоминание:</strong> прошло 10 минут. Сохраните проект (.tcat), чтобы не потерять работу.</div>
+        <div class="save-reminder-actions">
+            <button type="button" class="btn btn-accent" onclick="saveProjectFromReminder()">Сохранить проект</button>
+            <button type="button" class="btn btn-secondary" onclick="dismissSaveReminder()">Позже</button>
+        </div>
+    </div>
+
+    <!-- Боковая панель: непереведённые / заметки -->
+    <div class="pending-panel" id="pending-panel">
+        <div class="pending-panel-header">
+            <span id="side-panel-title">Не зафиксировано</span>
+            <button type="button" onclick="toggleSidePanel(null)" title="Закрыть">&times;</button>
+        </div>
+        <div class="pending-panel-list" id="pending-panel-list"></div>
+    </div>
+
+    <!-- Модалка заметки к сегменту -->
+    <div class="note-modal-overlay" id="note-modal">
+        <div class="note-modal">
+            <h3 id="note-modal-title">Заметка к сегменту</h3>
+            <div class="note-fmt-bar" id="note-fmt-bar" onmousedown="event.preventDefault()">
+                <button type="button" data-ncmd="bold" title="Жирный"><b>B</b></button>
+                <button type="button" data-ncmd="italic" title="Курсив"><i>I</i></button>
+                <button type="button" data-ncmd="underline" title="Подчёркнутый"><u>U</u></button>
+                <button type="button" class="hl-yellow" data-ncmd="hl-yellow" title="Жёлтый фон">▮</button>
+                <button type="button" class="hl-red" data-ncmd="hl-red" title="Красный фон">▮</button>
+                <button type="button" class="hl-green" data-ncmd="hl-green" title="Зелёный фон">▮</button>
+                <button type="button" data-ncmd="insertUnorderedList" title="Список">•≡</button>
+                <button type="button" data-ncmd="insertOrderedList" title="Нумерованный">1.</button>
+                <button type="button" data-ncmd="removeFormat" title="Снять форматирование">Tx</button>
+            </div>
+            <div class="note-modal-editor" id="note-modal-text" contenteditable="true" data-placeholder="Текст заметки…"></div>
+            <div class="note-modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeNoteModal()">Отмена</button>
+                <button type="button" class="btn btn-secondary" style="color:#ef4444;border-color:#fca5a5;" onclick="clearSegmentNote()">Удалить</button>
+                <button type="button" class="btn" onclick="saveSegmentNote()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Панель управления словарями -->
+    <div class="dict-manage-panel" id="dict-manage-panel">
+        <div class="dict-manage-header">
+            <span>Словари проекта</span>
+            <button type="button" onclick="closeDictManage()" title="Закрыть">&times;</button>
+        </div>
+        <div class="dict-manage-list" id="dict-manage-list"></div>
+    </div>
+
+    <!-- Главный блок -->
+    <div class="main-container" id="main-layout">
+        <div class="workspace" id="left-panel">
+            <div class="segments-list" id="segments-box">
+                <div class="no-data" style="max-width: 500px; margin: 40px auto; line-height: 1.6;">
+                    👋 Загрузите ваш тибетский .txt файл или откройте сохранённый проект .tcat.<br>
+                    Выделяйте фрагменты текста мышкой — прямо над ними появится окно для привязки заметок.
+                </div>
+            </div>
+        </div>
+
+        <!-- Интерактивная граница для перетаскивания мышкой -->
+        <div class="resizer" id="drag-bar"></div>
+
+        <div class="sidebar" id="right-panel">
+            <div class="sidebar-header">
+                <h3 id="sidebar-title">Глоссарий (0)</h3>
+                <div class="dicts-badge" id="dicts-badge" onclick="toggleDictManage(event)">
+                    Словари: 0
+                    <div class="dicts-tooltip" id="dicts-tooltip">
+                        <strong>Подгруженные словари</strong>
+                        <div class="dict-item" style="color:#94a3b8;">— нет —</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-content" id="sidebar-content">
+                <div class="no-data">Здесь будут отображаться связанные словарные статьи для выделенных слов.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Всплывающее контекстное окно (Popover) -->
+    <div id="text-popover" class="popover-box">
+        <div class="popover-title" id="popover-word-title">Слово</div>
+        <div class="note-fmt-bar" id="popover-fmt-bar" onmousedown="event.preventDefault()" style="margin-bottom:6px;">
+            <button type="button" data-pcmd="bold" title="Жирный"><b>B</b></button>
+            <button type="button" data-pcmd="italic" title="Курсив"><i>I</i></button>
+            <button type="button" data-pcmd="underline" title="Подчёркнутый"><u>U</u></button>
+            <button type="button" class="hl-yellow" data-pcmd="hl-yellow" title="Жёлтый фон">▮</button>
+            <button type="button" class="hl-red" data-pcmd="hl-red" title="Красный фон">▮</button>
+            <button type="button" class="hl-green" data-pcmd="hl-green" title="Зелёный фон">▮</button>
+            <button type="button" data-pcmd="insertUnorderedList" title="Список">•≡</button>
+            <button type="button" data-pcmd="insertOrderedList" title="Нумерованный">1.</button>
+            <button type="button" data-pcmd="removeFormat" title="Снять форматирование">Tx</button>
+        </div>
+        <div id="popover-term-def" class="note-modal-editor input-field" contenteditable="true" data-placeholder="Введите пояснение..." style="min-height:120px;margin-bottom:8px;"></div>
+        <button class="btn" style="width: 100%; padding: 6px; justify-content: center;" onclick="addTermToGlossary()">Привязать к слову</button>
+    </div>
+
+    <!-- Панель форматирования перевода (как у «Пояснение») — стыкуется над полем -->
+    <div id="fmt-toolbar" class="note-fmt-bar dock-fmt-bar" onmousedown="event.preventDefault()" style="display:none;">
+        <button type="button" data-cmd="bold" title="Жирный"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="Курсив"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Подчёркнутый"><u>U</u></button>
+        <button type="button" class="hl-yellow" data-cmd="hl-yellow" title="Жёлтый фон">▮</button>
+        <button type="button" class="hl-red" data-cmd="hl-red" title="Красный фон">▮</button>
+        <button type="button" class="hl-green" data-cmd="hl-green" title="Зелёный фон">▮</button>
+        <button type="button" data-cmd="insertUnorderedList" title="Список">•≡</button>
+        <button type="button" data-cmd="insertOrderedList" title="Нумерованный">1.</button>
+        <button type="button" data-cmd="removeFormat" title="Снять форматирование">Tx</button>
+    </div>
+
+    <!-- Модальное окно справки -->
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Справка — Tibetan CAT Studio Pro</h2>
+                <button class="modal-close" onclick="closeHelp()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>1. Загрузка и меню</h3>
+                <ul>
+                    <li><strong>Открыть TXT</strong> — файл с тибетским текстом (одна строка = один сегмент).</li>
+                    <li><strong>Проект ▾</strong> (наведение) — сохранить / загрузить проект (.tcat).</li>
+                    <li><strong>Словарь ▾</strong> (наведение) — сохранить / загрузить словарь, редактор, скачать словари.</li>
+                    <li><strong>Экспорт перевода</strong>, <strong>Справка</strong> — отдельные кнопки.</li>
+                </ul>
+
+                <h3>2. Перевод сегментов</h3>
+                <ul>
+                    <li>Кликните в поле под оригиналом и введите перевод.</li>
+                    <li><kbd>Ctrl</kbd> + <kbd>Enter</kbd> — зафиксировать перевод (зелёный) или <em>снять</em> фиксацию повторным нажатием.</li>
+                    <li><kbd>Enter</kbd> — новый абзац с красной строкой и отступом между абзацами.</li>
+                    <li><strong>Форматирование</strong> (единый набор для перевода, заметки, пояснения, правки «Проект книги»): при фокусе в поле — панель над ним:
+                        <b>B</b> <i>I</i> <u>U</u>, ▮ жёлтый / красный / зелёный фон, •≡ и 1. списки, <b>Tx</b> снять формат. Без всплывающих панелей поверх текста.</li>
+                    <li>Карточки с источником <strong>Проект книги</strong> — кнопка ✎ для правки текста с той же панелью.</li>
+                    <li>Номер слева: <code>3-47</code> = 3-й сегмент из 47.</li>
+                    <li>Кнопка «Заметка» — полупрозрачная; зелёная точка = заметка есть. В заметке: жирный/курсив/подчёркивание, жёлтый/красный/зелёный фон, списки.</li>
+                    <li>Кнопка «Редактировать» — правка тибетского текста; «Готово» сохраняет, «Отменить» возвращает текст как было.</li>
+                    <li>Иконка закладки под «Редактировать» — пометить сегмент; счётчик <strong>Закладки</strong> в шапке — список и переход.</li>
+                    <li>Кнопка <strong>+ строка</strong> — новая строка в режиме правки (поля раскрыты). <strong>Готово</strong> сохраняет; если оба поля пусты — строка не создаётся. <strong>Отменить</strong> — отмена создания.</li>
+                    <li><strong>Удалить строку</strong> (слева от «+ строка») — удаление сегмента с подтверждением.</li>
+                    <li>Номер сегмента: <code>3-<span style="opacity:.45">100</span></code> — текущий номер и общее число (полупрозрачно).</li>
+                    <li>В шапке: <strong>Не перев.</strong>, <strong>Готово</strong>, <strong>Заметки</strong>, <strong>Закладки</strong> — список с переводом, заметкой и метками (Готово / Заметка / Закладка). Жёлтое выделение тоже видно. <kbd>Esc</kbd> закрывает.</li>
+                    <li>Пока идёт «Редактировать» тибетский текст, окно «пояснение к слову» не открывается.</li>
+                </ul>
+
+                <h3>3. Глоссарий (привязка терминов)</h3>
+                <ul>
+                    <li>Выделите мышью слово или фразу в <em>оригинале</em>.</li>
+                    <li>Во всплывающем окне введите пояснение (с форматированием: B/I/U, жёлтый/красный/зелёный фон, списки) → «Привязать к слову» или <kbd>Ctrl</kbd> + <kbd>Enter</kbd>.</li>
+                    <li>Термин подсветится жёлтым; клик по нему прокрутит карточку в правой панели.</li>
+                    <li>Справа от <em>каждой</em> строки перевода — источник. У подгруженных словарей: <code>имя (N)</code>, где N — число определений <em>в файле</em> словаря.</li>
+                    <li>Если участок покрыт несколькими терминами (целое слово и его часть), <em>над предложением</em> появляются ссылки <strong>1 термин</strong>, <strong>2 термин</strong>… — цифры не вставляются в текст. Клик открывает карточку.</li>
+                    <li>Удаление: наведите на строку → × (карточка не прыгает).</li>
+                </ul>
+
+                <h3>4. Словари</h3>
+                <ul>
+                    <li><strong>Загрузить словарь</strong> — можно выбрать <em>несколько</em> файлов <code>.tdict</code> сразу. Дубликаты пропускаются. Число на метке = определения в файле. Редактор одного словаря: <code>dict_editor.html</code>.</li>
+                    <li>Подсветка (вариант B): точное совпадение строки — <code>རོགས་པ</code> найдётся и внутри <code>རོགས་པའི</code>. При наложении терминов над сегментом — номера 1, 2… Текст не рвётся (гласные/подписные не отрываются от букв).</li>
+                    <li><strong>Сохранить словарь</strong> — только записи «Проект книги». Подгруженные словари не включаются.</li>
+                    <li>Бейдж <strong>Словари: N</strong> — при наведении список; клик — управление: галочки (вкл/выкл) и «Удалить».</li>
+                    <li><strong>Скачать словари</strong> — кнопка в группе словарей (ссылку можно задать в коде).</li>
+                </ul>
+
+                <h3>5. Сохранение и экспорт</h3>
+                <ul>
+                    <li><strong>Сохранить проект</strong> (.tcat) — сегменты (включая заметки), глоссарий, список словарей.</li>
+                    <li><strong>Экспорт перевода</strong> — HTML-страница: копировать тибетский / перевод / всё, выделить строки.</li>
+                    <li>Имена файлов с датой и временем: <code>2026-10-20_15-30-00_project.tcat</code>.</li>
+                    <li>При закрытии вкладки браузер напомнит сохранить сессию.</li>
+                    <li>Каждые <strong>10 минут</strong> появляется напоминание «Сохранить проект» (можно отложить «Позже»).</li>
+                </ul>
+
+                <h3>6. Навигация и интерфейс</h3>
+                <ul>
+                    <li>Плавающая кнопка <strong>№..?</strong> слева внизу — быстрый переход к сегменту по номеру (поле + OK или Enter).</li>
+                    <li>Счётчики в шапке: <strong>Не перев.</strong> / <strong>Готово</strong> / <strong>Заметки</strong> / <strong>Закладки</strong> — клик открывает список и переход к сегменту.</li>
+                    <li>На узком экране кнопки меню сжимаются (короткие подписи / иконки), подсказка — при наведении.</li>
+                    <li>Тяните вертикальную полосу между панелями, чтобы менять ширину.</li>
+                    <li><kbd>Esc</kbd> — закрыть списки счётчиков, поповер, заметку, справку, переход по номеру.</li>
+                    <li>Списки счётчиков по ширине совпадают с левой панелью (~70%); форматирование текста в списках сохраняется.</li>
+                </ul>
+
+                <h3>Форматы файлов</h3>
+                <ul>
+                    <li><code>.txt</code> — исходный текст (UTF-8, по строкам).</li>
+                    <li><code>.tcat</code> — проект (JSON: segments + notes + glossary + loadedDictNames).</li>
+                    <li><code>.tdict</code> — словарь (JSON: <code>{"слово": ["описание1", "описание2"]}</code>).</li>
+                </ul>
+
+                <h3>История релизов</h3>
+                <ul>
+                    <li><strong>1 ноября 2026</strong> — компактное меню (Проект / Словарь), «+ строка», «Отменить» правку, снятие фиксации Ctrl+Enter, закладки, счётчики с перекрёстными метками, адаптивная панель.</li>
+                    <li><strong>Октябрь 2026</strong> — заметки с форматированием, редактор словаря, подсветка терминов (вариант B), экспорт HTML, плавающий переход №..?, управление словарями (вкл/выкл/удалить), жёлтый/красный/зелёный фон в заметках и пояснениях.</li>
+                    <li><strong>Ранние итерации</strong> — базовая CAT-схема сегментов, глоссарий, сохранение .tcat / .tdict, нумерация и источники в карточках.</li>
+                </ul>
+
+                <h3>Автор и лицензия</h3>
+                <ul>
+                    <li>Автор: <strong>aka Shoy</strong></li>
+                    <li>E-mail: <a href="mailto:maadyrondar@gmail.com">maadyrondar@gmail.com</a></li>
+                    <li>Лицензия: <strong>свободная</strong> — можно свободно использовать, копировать и изменять.</li>
+                    <li>Дата релиза: <strong>1 ноября 2026</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let projectData = {
+            segments: [], 
+            glossary: {}  // Структура: { "слово": [ { txt: "описание", src: "Имя" } ] }
+        };
+
+        let loadedDictNames = []; // Список имён подгруженных внешних словарей
+        let loadedDictCounts = {}; // Имя словаря → сколько записей реально пришло из файла
+        let disabledDictNames = []; // временно выключенные словари (не удалены)
+        let currentSelectedWord = "";
+
+        // ========== ЛОГИКА ИЗМЕНЕНИЯ РАЗМЕРА ПАНЕЛЕЙ ==========
+        const dragBar = document.getElementById('drag-bar');
+        const leftPanel = document.getElementById('left-panel');
+        const rightPanel = document.getElementById('right-panel');
+        const mainLayout = document.getElementById('main-layout');
+
+        dragBar.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            dragBar.classList.add('active');
+            document.addEventListener('mousemove', resizePanels);
+            document.addEventListener('mouseup', stopResize);
+        });
+
+        function resizePanels(e) {
+            const containerWidth = mainLayout.clientWidth;
+            let leftWidth = e.clientX;
+            
+            if (leftWidth < 200) leftWidth = 200;
+            if (leftWidth > containerWidth - 200) leftWidth = containerWidth - 200;
+
+            const leftPercent = (leftWidth / containerWidth) * 100;
+            const rightPercent = 100 - leftPercent;
+
+            leftPanel.style.width = leftPercent + '%';
+            rightPanel.style.width = rightPercent + '%';
+        }
+
+        function stopResize() {
+            dragBar.classList.remove('active');
+            document.removeEventListener('mousemove', resizePanels);
+            document.removeEventListener('mouseup', stopResize);
+        }
+
+        // ========== ОТСЛЕЖИВАНИЕ ВЫДЕЛЕНИЯ ТЕКСТА ==========
+        document.addEventListener('mouseup', (e) => {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            const popover = document.getElementById('text-popover');
+            
+            if (selectedText && selection.anchorNode) {
+                const isSourceLine = selection.anchorNode.parentElement &&
+                    selection.anchorNode.parentElement.closest('.source-line');
+                
+                // Во время правки тибетского текста не открываем «пояснение»
+                if (isSourceLine && isSourceLine.classList.contains('editing-src')) {
+                    return;
+                }
+
+                if (isSourceLine) {
+                    currentSelectedWord = selectedText;
+                    document.getElementById('popover-word-title').textContent = selectedText;
+                    
+                    const range = selection.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    
+                    const popW = 320;
+                    let left = rect.left + window.scrollX + (rect.width / 2) - popW / 2;
+                    if (left < 8) left = 8;
+                    popover.style.left = left + 'px';
+                    // Запас сверху: крупный тибетский заголовок + панель форматирования
+                    let top = rect.top + window.scrollY - 200;
+                    if (top < window.scrollY + 8) top = rect.bottom + window.scrollY + 8;
+                    popover.style.top = top + 'px';
+                    document.getElementById('popover-term-def').innerHTML = '';
+                    popover.style.display = 'flex';
+                    
+                    setTimeout(() => {
+                        document.getElementById('popover-term-def').focus();
+                    }, 50);
+                    return;
+                }
+            }
+            
+            if (popover && !popover.contains(e.target)) {
+                closePopover();
+            }
+        });
+
+        // Горячие клавиши внутри поповера
+        document.getElementById('popover-term-def').addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closePopover();
+                window.getSelection().removeAllRanges();
+            } else if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                addTermToGlossary();
+            }
+        });
+
+        document.getElementById('popover-fmt-bar').addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-pcmd]');
+            if (!btn) return;
+            e.preventDefault();
+            applyRichFormat(document.getElementById('popover-term-def'), btn.getAttribute('data-pcmd'));
+        });
+
+        function closePopover() {
+            const popover = document.getElementById('text-popover');
+            if (popover) {
+                popover.style.display = 'none';
+                document.getElementById('popover-term-def').innerHTML = '';
+            }
+            currentSelectedWord = "";
+        }
+
+        function addTermToGlossary() {
+            const defInput = document.getElementById('popover-term-def');
+            const plain = defInput.textContent.replace(/\u00a0/g, ' ').trim();
+            if (!currentSelectedWord || !plain) return;
+            const definition = /<[a-z][\s\S]*>/i.test(defInput.innerHTML)
+                ? defInput.innerHTML.trim()
+                : plain;
+
+            if (!projectData.glossary[currentSelectedWord]) {
+                projectData.glossary[currentSelectedWord] = [];
+            }
+            
+            projectData.glossary[currentSelectedWord].push({
+                txt: definition,
+                src: "Проект книги"
+            });
+
+            closePopover();
+            window.getSelection().removeAllRanges();
+
+            renderGlossaryList();
+            applyGlossaryHighlight();
+            highlightTermCard(currentSelectedWord);
+        }
+
+        // Тибетские знаки, «прилипающие» к букве (гласные, подписные и т.п.)
+        // Нужны, чтобы HTML-подсветка не разрывала стопку (པ|ི → искажение)
+        function isTibetanAttachMark(ch) {
+            if (!ch) return false;
+            const c = ch.codePointAt(0);
+            return (c >= 0x0F71 && c <= 0x0F87) ||
+                   (c >= 0x0F8D && c <= 0x0FBC) ||
+                   c === 0x0F35 || c === 0x0F37 || c === 0x0F39 ||
+                   c === 0x0F3E || c === 0x0F3F || c === 0x0F7F ||
+                   c === 0x0F80 || c === 0x0F81 || c === 0x0F82 ||
+                   c === 0x0F83 || c === 0x0F84;
+        }
+
+        // Вариант B: точное совпадение подстроки; граница HTML не режет стопку
+        function isDictEnabled(src) {
+            if (!src || src === 'Проект книги') return true;
+            return disabledDictNames.indexOf(src) === -1;
+        }
+
+        function applyGlossaryHighlight() {
+            const sourceLines = document.querySelectorAll('.source-line');
+            // Только термины с хотя бы одной включённой записью
+            const words = Object.keys(projectData.glossary).filter(w => {
+                return projectData.glossary[w].some(item => isDictEnabled(item.src));
+            }).sort((a, b) => b.length - a.length);
+
+            sourceLines.forEach(lineNode => {
+                const prevRefs = lineNode.parentElement && lineNode.parentElement.querySelector('.overlap-refs');
+                if (prevRefs) prevRefs.remove();
+
+                let originalText = lineNode.getAttribute('data-raw');
+                if (!originalText) {
+                    originalText = lineNode.textContent;
+                    lineNode.setAttribute('data-raw', originalText);
+                }
+
+                if (words.length === 0) {
+                    lineNode.textContent = originalText;
+                    return;
+                }
+
+                // Точные вхождения (རོགས་པ найдётся и внутри རོགས་པའི)
+                const matches = [];
+                words.forEach(w => {
+                    if (!w) return;
+                    let start = 0;
+                    while (start < originalText.length) {
+                        const idx = originalText.indexOf(w, start);
+                        if (idx === -1) break;
+                        matches.push({ start: idx, end: idx + w.length, word: w });
+                        start = idx + 1;
+                    }
+                });
+
+                if (matches.length === 0) {
+                    lineNode.textContent = originalText;
+                    return;
+                }
+
+                // Покрытие: для каждой позиции — список терминов
+                const n = originalText.length;
+                const cover = Array.from({ length: n }, () => []);
+                matches.forEach(m => {
+                    for (let i = m.start; i < m.end; i++) {
+                        if (!cover[i].includes(m.word)) cover[i].push(m.word);
+                    }
+                });
+
+                // Термины, участвующие в пересечениях (участок с 2+ терминами)
+                const overlapTerms = [];
+                const seen = new Set();
+                for (let i = 0; i < n; i++) {
+                    if (cover[i].length >= 2) {
+                        cover[i].forEach(t => {
+                            if (!seen.has(t)) {
+                                seen.add(t);
+                                overlapTerms.push(t);
+                            }
+                        });
+                    }
+                }
+
+                // Подсветка: жёлтый span; стопки букв+гласных не режем (иначе искажение)
+                let html = '';
+                let i = 0;
+                while (i < n) {
+                    // Не начинаем кусок с «хвоста» стопки
+                    if (i > 0 && isTibetanAttachMark(originalText[i])) {
+                        i++;
+                        continue;
+                    }
+                    const key0 = cover[i].slice().sort().join('\0');
+                    let j = i + 1;
+                    while (j < n && cover[j].slice().sort().join('\0') === key0) j++;
+                    // Захватить прилипающие знаки после границы — не рвать стопку
+                    while (j < n && isTibetanAttachMark(originalText[j])) j++;
+
+                    const chunk = originalText.slice(i, j);
+                    const terms = cover[i];
+                    if (terms.length === 0) {
+                        html += escapeHtml(chunk);
+                    } else {
+                        const primary = terms.slice().sort((a, b) => b.length - a.length)[0];
+                        html += '<span class="tagged-word" onclick="viewTerm(\'' + escapeHtml(primary) + '\')">' +
+                                escapeHtml(chunk) + '</span>';
+                    }
+                    i = j;
+                }
+                lineNode.innerHTML = html;
+
+                // Номера над предложением, если есть пересечения
+                if (overlapTerms.length > 0 && lineNode.parentElement) {
+                    const refsBar = document.createElement('div');
+                    refsBar.className = 'overlap-refs';
+                    overlapTerms.forEach((t, idx) => {
+                        const btn = document.createElement('span');
+                        btn.className = 'overlap-ref';
+                        btn.title = t;
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            viewTerm(t);
+                        };
+                        btn.innerHTML = '<span class="ref-num">' + (idx + 1) + '</span>' +
+                                        '<span class="ref-word">' + escapeHtml(t) + '</span>';
+                        refsBar.appendChild(btn);
+                    });
+                    lineNode.parentElement.insertBefore(refsBar, lineNode);
+                }
+            });
+        }
+
+        function viewTerm(word) {
+            highlightTermCard(word);
+        }
+
+        function highlightTermCard(word) {
+            renderGlossaryList();
+            const cards = document.querySelectorAll('.term-card');
+            cards.forEach(card => {
+                if (card.getAttribute('data-word') === word) {
+                    card.classList.add('highlight');
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        }
+
+        function deleteGlossaryItem(word, index) {
+            if (projectData.glossary[word]) {
+                projectData.glossary[word].splice(index, 1);
+                
+                if (projectData.glossary[word].length === 0) {
+                    delete projectData.glossary[word];
+                }
+                
+                renderGlossaryList();
+                applyGlossaryHighlight();
+            }
+        }
+
+        function startEditGlossaryItem(word, idx, textNode) {
+            const item = projectData.glossary[word] && projectData.glossary[word][idx];
+            if (!item || item.src !== 'Проект книги') return;
+            if (textNode.getAttribute('data-editing') === '1') return;
+            textNode.setAttribute('data-editing', '1');
+            const cur = item.txt || '';
+            const editorId = 'gloss-edit-' + Date.now();
+            textNode.innerHTML =
+                '<div class="note-fmt-bar" id="' + editorId + '-bar" onmousedown="event.preventDefault()">' +
+                '<button type="button" data-gcmd="bold" title="Жирный"><b>B</b></button>' +
+                '<button type="button" data-gcmd="italic" title="Курсив"><i>I</i></button>' +
+                '<button type="button" data-gcmd="underline" title="Подчёркнутый"><u>U</u></button>' +
+                '<button type="button" class="hl-yellow" data-gcmd="hl-yellow" title="Жёлтый">▮</button>' +
+                '<button type="button" class="hl-red" data-gcmd="hl-red" title="Красный">▮</button>' +
+                '<button type="button" class="hl-green" data-gcmd="hl-green" title="Зелёный">▮</button>' +
+                '<button type="button" data-gcmd="insertUnorderedList" title="Список">•≡</button>' +
+                '<button type="button" data-gcmd="insertOrderedList" title="Нумерованный">1.</button>' +
+                '<button type="button" data-gcmd="removeFormat" title="Снять">Tx</button>' +
+                '</div>' +
+                '<div id="' + editorId + '" class="note-modal-editor" contenteditable="true" style="min-height:90px;margin:6px 0;"></div>' +
+                '<div style="display:flex;gap:6px;">' +
+                '<button type="button" class="btn" style="padding:4px 10px;font-size:11px;" data-act="ok">OK</button>' +
+                '<button type="button" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;" data-act="cancel">Отмена</button>' +
+                '</div>';
+            const edEl = document.getElementById(editorId);
+            if (cur && /<[a-z][\s\S]*>/i.test(cur)) edEl.innerHTML = cur;
+            else edEl.textContent = cur;
+            const bar = document.getElementById(editorId + '-bar');
+            bar.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-gcmd]');
+                if (!btn) return;
+                e.preventDefault();
+                applyRichFormat(edEl, btn.getAttribute('data-gcmd'));
+            });
+            const finish = (save) => {
+                if (save) {
+                    const plain = edEl.textContent.replace(/\u00a0/g, ' ').trim();
+                    if (plain) {
+                        item.txt = /<[a-z][\s\S]*>/i.test(edEl.innerHTML)
+                            ? edEl.innerHTML.trim() : plain;
+                    }
+                }
+                textNode.removeAttribute('data-editing');
+                renderGlossaryList();
+            };
+            textNode.querySelector('[data-act="ok"]').onclick = (e) => { e.stopPropagation(); finish(true); };
+            textNode.querySelector('[data-act="cancel"]').onclick = (e) => { e.stopPropagation(); finish(false); };
+            edEl.focus();
+        }
+
+        // ========== ПОДСЧЁТ ЗАПИСЕЙ ПО ИСТОЧНИКАМ ==========
+        // Живой счёт: сколько записей с данным src сейчас в глоссарии
+        function getSourceCounts() {
+            const counts = {};
+            for (const word of Object.keys(projectData.glossary)) {
+                projectData.glossary[word].forEach(item => {
+                    const src = item.src || '—';
+                    counts[src] = (counts[src] || 0) + 1;
+                });
+            }
+            return counts;
+        }
+
+        // Число для отображения: сколько записей пришло из файла при загрузке
+        // (не путать с живым счётом, если пользователь что-то удалил)
+        function getDictDisplayCount(srcName) {
+            if (loadedDictCounts[srcName] != null) return loadedDictCounts[srcName];
+            return getSourceCounts()[srcName] || 0;
+        }
+
+        // ========== ОБНОВЛЕНИЕ БЕЙДЖА СЛОВАРЕЙ ==========
+        function updateDictsBadge() {
+            const badge = document.getElementById('dicts-badge');
+            const tooltip = document.getElementById('dicts-tooltip');
+            
+            badge.childNodes[0].textContent = 'Словари: ' + loadedDictNames.length + ' ';
+            
+            if (loadedDictNames.length === 0) {
+                tooltip.innerHTML = '<strong>Подгруженные словари</strong><div class="dict-item" style="color:#94a3b8;">— нет —</div>';
+            } else {
+                let html = '<strong>Подгруженные словари</strong>';
+                loadedDictNames.forEach(name => {
+                    const n = getDictDisplayCount(name);
+                    html += '<div class="dict-item">• ' + escapeHtml(name) + ' <span style="color:#94a3b8;">(' + n + ')</span></div>';
+                });
+                tooltip.innerHTML = html;
+            }
+        }
+
+        // ========== РЕНДЕРИНГ ГЛОССАРИЯ ==========
+        function renderGlossaryList() {
+            const container = document.getElementById('sidebar-content');
+            container.innerHTML = '';
+            
+            const keys = Object.keys(projectData.glossary);
+            
+            document.getElementById('sidebar-title').textContent = 'Глоссарий (' + keys.length + ')';
+            updateDictsBadge();
+
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="no-data">Здесь будут отображаться связанные словарные статьи для выделенных слов.</div>';
+                return;
+            }
+
+            keys.forEach(word => {
+                const enabledItems = projectData.glossary[word]
+                    .map((item, idx) => ({ item, idx }))
+                    .filter(({ item }) => isDictEnabled(item.src));
+                if (!enabledItems.length) return;
+
+                const card = document.createElement('div');
+                card.className = 'term-card';
+                card.setAttribute('data-word', word);
+                card.onclick = () => {
+                    document.querySelectorAll('.term-card').forEach(c => c.classList.remove('highlight'));
+                    card.classList.add('highlight');
+                };
+
+                const title = document.createElement('div');
+                title.className = 'term-title';
+                title.textContent = word;
+                card.appendChild(title);
+
+                const defWrapper = document.createElement('div');
+                defWrapper.className = 'term-definition-wrapper';
+
+                enabledItems.forEach(({ item, idx }) => {
+                    const def = document.createElement('div');
+                    def.className = 'term-definition';
+
+                    const row = document.createElement('div');
+                    row.className = 'term-def-row';
+
+                    const textNode = document.createElement('div');
+                    textNode.className = 'term-def-text';
+                    if (item.txt && /<[a-z][\s\S]*>/i.test(item.txt)) {
+                        textNode.innerHTML = item.txt;
+                    } else {
+                        textNode.textContent = item.txt;
+                    }
+
+                    const meta = document.createElement('div');
+                    meta.className = 'term-def-meta';
+
+                    const tag = document.createElement('span');
+                    tag.className = 'term-source-tag';
+                    const srcName = item.src || '—';
+                    if (srcName !== 'Проект книги') {
+                        const n = getDictDisplayCount(srcName);
+                        tag.textContent = srcName + ' (' + n + ')';
+                        tag.title = 'Записей в словаре «' + srcName + '»: ' + n;
+                    } else {
+                        tag.textContent = srcName;
+                    }
+
+                    if (srcName === 'Проект книги') {
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'delete-btn';
+                        editBtn.style.color = '#4f46e5';
+                        editBtn.innerHTML = '✎';
+                        editBtn.title = 'Изменить (Проект книги)';
+                        editBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            startEditGlossaryItem(word, idx, textNode);
+                        };
+                        meta.appendChild(editBtn);
+                    }
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'delete-btn';
+                    delBtn.innerHTML = '&times;';
+                    delBtn.title = 'Удалить эту запись';
+                    delBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        deleteGlossaryItem(word, idx);
+                    };
+
+                    meta.appendChild(tag);
+                    meta.appendChild(delBtn);
+
+                    row.appendChild(textNode);
+                    row.appendChild(meta);
+                    def.appendChild(row);
+                    defWrapper.appendChild(def);
+                });
+
+                card.appendChild(defWrapper);
+                container.appendChild(card);
+            });
+        }
+
+        // ========== ФОРМАТИРОВАНИЕ ПОЛЯ ПЕРЕВОДА ==========
+        let savedFmtRange = null; // сохранённое выделение для кнопок панели
+
+        function cleanEditableHtml(html) {
+            if (!html) return '';
+            let s = String(html)
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/\u00a0/g, ' ')
+                .replace(/<br\s*\/?>\s*$/gi, '')
+                .replace(/(<div><br\s*\/?><\/div>\s*)+$/gi, '')
+                .replace(/(<p><br\s*\/?><\/p>\s*)+$/gi, '')
+                .replace(/(<div>\s*<\/div>\s*)+$/gi, '')
+                .replace(/\s+$/g, '')
+                .trim();
+            // убрать «пустой» html
+            const plain = s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+            if (!plain) return '';
+            return s;
+        }
+
+        function getTargetHtml(el) {
+            return cleanEditableHtml(el.innerHTML);
+        }
+
+        function restoreFmtSelection() {
+            if (!savedFmtRange) return false;
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            try {
+                sel.addRange(savedFmtRange);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function saveFmtSelection() {
+            const sel = window.getSelection();
+            if (sel.rangeCount && !sel.isCollapsed) {
+                try {
+                    savedFmtRange = sel.getRangeAt(0).cloneRange();
+                } catch (e) {}
+            }
+        }
+
+        /** Обёртка выделения тегом (запасной путь, если execCommand('bold') не сработал) */
+        function wrapSelectionWithTag(tagName) {
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed) return false;
+            const range = sel.getRangeAt(0);
+            try {
+                const el = document.createElement(tagName);
+                range.surroundContents(el);
+                savedFmtRange = document.createRange();
+                savedFmtRange.selectNodeContents(el);
+                sel.removeAllRanges();
+                sel.addRange(savedFmtRange);
+                return true;
+            } catch (err) {
+                // Сложное выделение — extractContents
+                try {
+                    const el = document.createElement(tagName);
+                    el.appendChild(range.extractContents());
+                    range.insertNode(el);
+                    savedFmtRange = document.createRange();
+                    savedFmtRange.selectNodeContents(el);
+                    sel.removeAllRanges();
+                    sel.addRange(savedFmtRange);
+                    return true;
+                } catch (e2) {
+                    return false;
+                }
+            }
+        }
+
+        function unwrapTagInSelection(tagNames) {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const container = range.commonAncestorContainer;
+            const root = (container.nodeType === 3 ? container.parentElement : container);
+            const target = root && root.closest ? (root.closest('.target-line') || root) : root;
+            if (!target) return;
+            tagNames.forEach(tag => {
+                target.querySelectorAll(tag).forEach(el => {
+                    try {
+                        if (!range.intersectsNode(el)) return;
+                        const parent = el.parentNode;
+                        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+                        parent.removeChild(el);
+                        parent.normalize();
+                    } catch (e) {}
+                });
+            });
+        }
+
+        function selectionHasTag(tagNames) {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return false;
+            let node = sel.anchorNode;
+            if (node && node.nodeType === 3) node = node.parentElement;
+            while (node && node.nodeType === 1) {
+                if (tagNames.indexOf(node.nodeName.toLowerCase()) >= 0) return true;
+                if (node.classList && node.classList.contains('target-line')) break;
+                node = node.parentElement;
+            }
+            return false;
+        }
+
+        function toggleHighlight() {
+            if (!restoreFmtSelection()) return;
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed) return;
+            let node = sel.anchorNode;
+            if (node && node.nodeType === 3) node = node.parentElement;
+            const existing = node && node.closest && node.closest('.hl');
+            if (existing && existing.closest('.target-line')) {
+                const parent = existing.parentNode;
+                while (existing.firstChild) parent.insertBefore(existing.firstChild, existing);
+                parent.removeChild(existing);
+                parent.normalize();
+            } else {
+                try {
+                    const range = sel.getRangeAt(0);
+                    const span = document.createElement('span');
+                    span.className = 'hl';
+                    range.surroundContents(span);
+                    // обновить сохранённое выделение
+                    savedFmtRange = document.createRange();
+                    savedFmtRange.selectNodeContents(span);
+                } catch (err) {
+                    document.execCommand('hiliteColor', false, '#fef08c');
+                }
+            }
+            saveFmtSelection();
+        }
+
+        function clearFormatting() {
+            if (!restoreFmtSelection()) return;
+            // Снимаем стандартные стили
+            document.execCommand('removeFormat', false, null);
+            document.execCommand('unlink', false, null);
+            // Убираем наши .hl и inline background
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const container = range.commonAncestorContainer;
+            const root = container.nodeType === 3 ? container.parentElement : container;
+            if (!root) return;
+            const target = root.closest('.target-line') || root;
+            target.querySelectorAll('.hl, span[style*="background"]').forEach(span => {
+                if (!range.intersectsNode(span)) return;
+                const parent = span.parentNode;
+                while (span.firstChild) parent.insertBefore(span.firstChild, span);
+                parent.removeChild(span);
+            });
+            // Снимаем b/i/u/strong/em внутри выделения через unwrap, если removeFormat не справился
+            ['b', 'strong', 'i', 'em', 'u', 'font'].forEach(tag => {
+                target.querySelectorAll(tag).forEach(el => {
+                    try {
+                        if (!range.intersectsNode(el)) return;
+                        const parent = el.parentNode;
+                        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+                        parent.removeChild(el);
+                    } catch (e) { /* skip */ }
+                });
+            });
+            target.normalize();
+            saveFmtSelection();
+        }
+
+        function applyFormat(cmd) {
+            const active = fmtActiveTarget ||
+                           document.querySelector('.segment.active .target-line') ||
+                           document.querySelector('.target-line:focus');
+            if (active && document.activeElement !== active) {
+                try { active.focus({ preventScroll: true }); } catch (e) { active.focus(); }
+            }
+            // Восстановить выделение (mousedown на панели мог его сбросить)
+            if (!restoreFmtSelection()) {
+                const sel = window.getSelection();
+                if (!sel.rangeCount || sel.isCollapsed) return;
+            }
+
+            if (cmd === 'highlight' || cmd === 'hl-yellow') {
+                toggleHighlight();
+            } else if (cmd === 'hl-red' || cmd === 'hl-green') {
+                const color = cmd === 'hl-red' ? '#fecaca' : '#bbf7d0';
+                try {
+                    document.execCommand('hiliteColor', false, color);
+                    if (!document.queryCommandSupported('hiliteColor')) {
+                        document.execCommand('backColor', false, color);
+                    }
+                } catch (e) {}
+                saveFmtSelection();
+            } else if (cmd === 'removeFormat') {
+                clearFormatting();
+            } else if (cmd === 'bold') {
+                // Жирный: execCommand + запасной путь через <strong>
+                try { document.execCommand('styleWithCSS', false, false); } catch (e) {}
+                const before = selectionHasTag(['b', 'strong']);
+                let ok = false;
+                try { ok = document.execCommand('bold', false, null); } catch (e) { ok = false; }
+                const after = selectionHasTag(['b', 'strong']);
+                if (before) {
+                    // снять жирный, если execCommand не снял
+                    if (after) unwrapTagInSelection(['b', 'strong']);
+                } else {
+                    if (!after && !ok) wrapSelectionWithTag('strong');
+                    // Проверка: если всё ещё нет тега — принудительно
+                    if (!selectionHasTag(['b', 'strong'])) wrapSelectionWithTag('strong');
+                }
+                saveFmtSelection();
+            } else if (cmd === 'italic' || cmd === 'underline') {
+                try { document.execCommand('styleWithCSS', false, false); } catch (e) {}
+                try { document.execCommand(cmd, false, null); } catch (e) {}
+                saveFmtSelection();
+            } else {
+                try { document.execCommand('styleWithCSS', false, false); } catch (e) {}
+                try { document.execCommand(cmd, false, null); } catch (e) {}
+                saveFmtSelection();
+            }
+
+            if (active) {
+                const idx = Array.from(document.querySelectorAll('.target-line')).indexOf(active);
+                if (idx >= 0 && projectData.segments[idx]) {
+                    projectData.segments[idx].target = getTargetHtml(active);
+                }
+            }
+        }
+
+        let fmtActiveTarget = null;
+        let fmtDocking = false;
+
+        function dockFmtToolbar(targetEl) {
+            const bar = document.getElementById('fmt-toolbar');
+            if (!bar || !targetEl) return;
+            const slot = targetEl.previousElementSibling &&
+                targetEl.previousElementSibling.classList.contains('target-fmt-slot')
+                ? targetEl.previousElementSibling
+                : null;
+            if (!slot) return;
+            fmtActiveTarget = targetEl;
+            document.querySelectorAll('.target-line.has-dock-fmt').forEach(el => {
+                if (el !== targetEl) el.classList.remove('has-dock-fmt');
+            });
+            document.querySelectorAll('.target-fmt-slot.sticky-active').forEach(s => {
+                if (s !== slot) s.classList.remove('sticky-active');
+            });
+            if (bar.parentNode !== slot) {
+                fmtDocking = true;
+                slot.appendChild(bar);
+            }
+            bar.style.display = 'flex';
+            bar.style.position = 'static';
+            bar.style.visibility = 'visible';
+            slot.classList.add('sticky-active');
+            targetEl.classList.add('has-dock-fmt');
+            if (document.activeElement !== targetEl) {
+                try { targetEl.focus({ preventScroll: true }); } catch (e) { targetEl.focus(); }
+            }
+            fmtDocking = false;
+        }
+
+        function showFmtToolbar() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const anchor = sel.anchorNode;
+            const el = anchor && (anchor.nodeType === 3 ? anchor.parentElement : anchor);
+            const target = el && el.closest && el.closest('.target-line');
+            if (target) {
+                saveFmtSelection();
+                dockFmtToolbar(target);
+            }
+        }
+
+        function hideFmtToolbar() {
+            if (fmtDocking) return;
+            const bar = document.getElementById('fmt-toolbar');
+            if (bar) {
+                bar.style.display = 'none';
+            }
+            document.querySelectorAll('.target-line.has-dock-fmt').forEach(el => {
+                el.classList.remove('has-dock-fmt');
+            });
+            document.querySelectorAll('.target-fmt-slot.sticky-active').forEach(s => {
+                s.classList.remove('sticky-active');
+            });
+            fmtActiveTarget = null;
+            savedFmtRange = null;
+        }
+
+        // Кнопки панели перевода
+        const fmtToolbarEl = document.getElementById('fmt-toolbar');
+        fmtToolbarEl.addEventListener('mousedown', (e) => {
+            // Сохранить выделение до потери focus; не уводить фокус с поля
+            e.preventDefault();
+            saveFmtSelection();
+        });
+        fmtToolbarEl.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-cmd]');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            applyFormat(btn.getAttribute('data-cmd'));
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (document.activeElement && document.activeElement.classList.contains('target-line')) {
+                saveFmtSelection();
+            }
+        });
+        // Скрывать только при клике вне поля перевода и панели
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.closest('#fmt-toolbar') || e.target.closest('.target-line')) return;
+            hideFmtToolbar();
+        });
+
+        // ========== РЕНДЕРИНГ СЕГМЕНТОВ ==========
+        function deleteSegment(index) {
+            const total = projectData.segments.length;
+            if (index < 0 || index >= total) return;
+            const preview = (projectData.segments[index].source || '').slice(0, 40);
+            const msg = 'Удалить строку ' + (index + 1) + '-' + total +
+                (preview ? ' «' + preview + (preview.length >= 40 ? '…' : '') + '»' : '') + '?';
+            if (!confirm(msg)) return;
+            projectData.segments.splice(index, 1);
+            renderSegments();
+            renderGlossaryList();
+            applyGlossaryHighlight();
+            updateProgressStats();
+        }
+
+        function insertSegmentAfter(index) {
+            const blank = {
+                source: '', target: '', confirmed: false, note: '', bookmarked: false,
+                _isNew: true
+            };
+            projectData.segments.splice(index + 1, 0, blank);
+            renderSegments();
+            renderGlossaryList();
+            setTimeout(() => {
+                const el = document.getElementById('seg-' + (index + 1));
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('active', 'seg-editing');
+                    const src = el.querySelector('.source-line');
+                    const tgt = el.querySelector('.target-line');
+                    const editBtn = el.querySelector('.edit-src-btn');
+                    if (src && editBtn) toggleSourceEdit(index + 1, src, editBtn);
+                    if (tgt) {
+                        tgt.setAttribute('data-placeholder', 'Перевод…');
+                    }
+                }
+            }, 50);
+        }
+
+        function renderSegments() {
+            const container = document.getElementById('segments-box');
+            container.innerHTML = '';
+
+            const total = projectData.segments.length;
+
+            if (total === 0) {
+                container.innerHTML = '<div class="no-data">Файл пуст или не загружен.</div>';
+                updateProgressStats();
+                return;
+            }
+
+            projectData.segments.forEach((seg, index) => {
+                const segmentDiv = document.createElement('div');
+                segmentDiv.className = 'segment';
+                segmentDiv.id = 'seg-' + index;
+                if (seg.confirmed) segmentDiv.classList.add('confirmed');
+
+                // Слева: номер + кнопка заметки
+                const side = document.createElement('div');
+                side.className = 'segment-side';
+
+                const numSpan = document.createElement('span');
+                numSpan.className = 'segment-number';
+                numSpan.innerHTML = (index + 1) + '-<span class="num-total">' + total + '</span>';
+
+                const noteBtn = document.createElement('button');
+                noteBtn.type = 'button';
+                const hasNote = !!(seg.note && String(seg.note).replace(/<[^>]+>/g, '').trim());
+                noteBtn.className = 'note-btn' + (hasNote ? ' has-note' : '');
+                noteBtn.title = hasNote ? 'Заметка (есть)' : 'Добавить заметку';
+                noteBtn.innerHTML = (hasNote ? '<span class="note-dot"></span>' : '') + 'Заметка';
+                noteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    openNoteModal(index);
+                };
+
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'edit-src-btn';
+                editBtn.textContent = 'Редактировать';
+                editBtn.title = 'Редактировать тибетский текст';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleSourceEdit(index, sourceDiv, editBtn);
+                };
+
+                const bmBtn = document.createElement('button');
+                bmBtn.type = 'button';
+                bmBtn.className = 'bookmark-btn' + (seg.bookmarked ? ' active' : '');
+                bmBtn.title = seg.bookmarked ? 'Снять закладку' : 'Поставить закладку';
+                bmBtn.innerHTML = '<span class="bm-icon">' + (seg.bookmarked ? '🔖' : '📑') + '</span>';
+                bmBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    projectData.segments[index].bookmarked = !projectData.segments[index].bookmarked;
+                    const on = !!projectData.segments[index].bookmarked;
+                    bmBtn.classList.toggle('active', on);
+                    bmBtn.title = on ? 'Снять закладку' : 'Поставить закладку';
+                    bmBtn.innerHTML = '<span class="bm-icon">' + (on ? '🔖' : '📑') + '</span>';
+                    updateProgressStats();
+                };
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'del-seg-btn';
+                delBtn.title = 'Удалить эту строку';
+                delBtn.textContent = 'Удалить строку';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteSegment(index);
+                };
+
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'add-seg-btn';
+                addBtn.title = 'Добавить сегмент ниже';
+                addBtn.textContent = '+ строка';
+                addBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    insertSegmentAfter(index);
+                };
+
+                side.appendChild(numSpan);
+                side.appendChild(noteBtn);
+                side.appendChild(editBtn);
+                side.appendChild(bmBtn);
+                side.appendChild(delBtn);
+                side.appendChild(addBtn);
+
+                // Тело сегмента (с цветной границей)
+                const body = document.createElement('div');
+                body.className = 'segment-body';
+
+                const sourceDiv = document.createElement('div');
+                sourceDiv.className = 'source-line';
+                sourceDiv.textContent = seg.source;
+                sourceDiv.setAttribute('data-raw', seg.source);
+
+                const targetDiv = document.createElement('div');
+                targetDiv.className = 'target-line';
+                targetDiv.contentEditable = true;
+                targetDiv.setAttribute('spellcheck', 'false');
+                if (seg.target && /<[a-z][\s\S]*>/i.test(seg.target)) {
+                    targetDiv.innerHTML = seg.target;
+                } else {
+                    targetDiv.textContent = seg.target || '';
+                }
+
+                targetDiv.onfocus = () => {
+                    document.querySelectorAll('.segment').forEach(s => s.classList.remove('active'));
+                    segmentDiv.classList.add('active');
+                    dockFmtToolbar(targetDiv);
+                };
+
+                targetDiv.onkeydown = (e) => {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        e.preventDefault();
+                        hideFmtToolbar();
+                        targetDiv.blur();
+                        segmentDiv.classList.remove('active');
+                        projectData.segments[index].target = getTargetHtml(targetDiv);
+                        const now = !projectData.segments[index].confirmed;
+                        projectData.segments[index].confirmed = now;
+                        segmentDiv.classList.toggle('confirmed', now);
+                        updateProgressStats();
+                    }
+                };
+
+                targetDiv.onblur = () => {
+                    projectData.segments[index].target = getTargetHtml(targetDiv);
+                    // Панель не прячем здесь: insertBefore/перерисовка снимают focus
+                    // и вызывали «мелькание». Скрытие — только по клику вне поля.
+                };
+
+                // Постоянный слот под панель — без сдвига текста при фокусе
+                const fmtSlot = document.createElement('div');
+                fmtSlot.className = 'target-fmt-slot';
+
+                body.appendChild(sourceDiv);
+                body.appendChild(fmtSlot);
+                body.appendChild(targetDiv);
+
+                segmentDiv.appendChild(side);
+                segmentDiv.appendChild(body);
+                container.appendChild(segmentDiv);
+            });
+
+            applyGlossaryHighlight();
+            updateProgressStats();
+        }
+
+        // ========== СЧЁТЧИКИ И БОКОВЫЕ СПИСКИ ==========
+        let sidePanelMode = null; // 'pending' | 'notes' | null
+
+        function updateProgressStats() {
+            const total = projectData.segments.length;
+            let done = 0;
+            let notes = 0;
+            let bookmarks = 0;
+            projectData.segments.forEach(s => {
+                if (s.confirmed) done++;
+                if (s.note && String(s.note).replace(/<[^>]+>/g, '').trim()) notes++;
+                if (s.bookmarked) bookmarks++;
+            });
+            const pending = total - done;
+            const elP = document.getElementById('stat-pending-n');
+            const elD = document.getElementById('stat-done-n');
+            const elN = document.getElementById('stat-notes-n');
+            const elB = document.getElementById('stat-bookmarks-n');
+            if (elP) elP.textContent = pending;
+            if (elD) elD.textContent = done;
+            if (elN) elN.textContent = notes;
+            if (elB) elB.textContent = bookmarks;
+
+            if (sidePanelMode) fillSidePanel(sidePanelMode);
+        }
+
+        function formatPanelBody(html) {
+            if (!html) return '';
+            const s = cleanEditableHtml(html);
+            if (!s) return '';
+            if (/<[a-z][\s\S]*>/i.test(s)) return s;
+            return escapeHtml(s);
+        }
+
+        function segmentFlagsHtml(seg, mode) {
+            const flags = [];
+            if (mode !== 'done' && seg.confirmed) flags.push('<span class="pi-flag flag-done">Готово</span>');
+            if (mode !== 'pending' && !seg.confirmed) flags.push('<span class="pi-flag flag-pending">Не перев.</span>');
+            const hasNote = seg.note && String(seg.note).replace(/<[^>]+>/g, '').trim();
+            if (mode !== 'notes' && hasNote) flags.push('<span class="pi-flag flag-note">Заметка</span>');
+            if (mode !== 'bookmarks' && seg.bookmarked) flags.push('<span class="pi-flag flag-bm">Закладка</span>');
+            if (!flags.length) return '';
+            return '<div class="pi-flags">' + flags.join('') + '</div>';
+        }
+
+        function appendSegmentListItem(list, seg, index, total, mode, options) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'pending-item';
+            let html = '<div class="pi-num">' + (options.prefix || '') + (index + 1) + '-' + total + '</div>';
+            html += '<span class="pi-src">' + escapeHtml(seg.source) + '</span>';
+            if (options.showTarget) {
+                const body = formatPanelBody(seg.target);
+                if (body) html += '<div class="pi-body">' + body + '</div>';
+            }
+            if (options.showNote) {
+                const noteRaw = seg.note && String(seg.note).trim();
+                if (noteRaw && noteRaw.replace(/<[^>]+>/g, '').trim()) {
+                    html += '<div class="pi-body" style="border-left:3px solid #0d9488;padding-left:8px;margin-top:6px;">' +
+                        formatPanelBody(noteRaw) + '</div>';
+                }
+            }
+            html += segmentFlagsHtml(seg, mode);
+            btn.innerHTML = html;
+            btn.onclick = () => jumpToSegment(index);
+            list.appendChild(btn);
+        }
+
+        function fillSidePanel(mode) {
+            const list = document.getElementById('pending-panel-list');
+            const title = document.getElementById('side-panel-title');
+            if (!list) return;
+            const total = projectData.segments.length;
+            list.innerHTML = '';
+
+            if (mode === 'pending') {
+                if (title) title.textContent = 'Не зафиксировано';
+                let count = 0;
+                projectData.segments.forEach((seg, index) => {
+                    if (seg.confirmed) return;
+                    count++;
+                    appendSegmentListItem(list, seg, index, total, mode, {
+                        showTarget: true,
+                        showNote: true
+                    });
+                });
+                if (!count) list.innerHTML = '<div class="no-data" style="margin:12px;">Все сегменты зафиксированы.</div>';
+            } else if (mode === 'done') {
+                if (title) title.textContent = 'Зафиксированные';
+                let count = 0;
+                projectData.segments.forEach((seg, index) => {
+                    if (!seg.confirmed) return;
+                    count++;
+                    appendSegmentListItem(list, seg, index, total, mode, {
+                        showTarget: true,
+                        showNote: true
+                    });
+                });
+                if (!count) list.innerHTML = '<div class="no-data" style="margin:12px;">Пока нет зафиксированных сегментов.</div>';
+            } else if (mode === 'notes') {
+                if (title) title.textContent = 'Сегменты с заметками';
+                let count = 0;
+                projectData.segments.forEach((seg, index) => {
+                    const noteRaw = seg.note && String(seg.note).trim();
+                    if (!noteRaw || !noteRaw.replace(/<[^>]+>/g, '').trim()) return;
+                    count++;
+                    appendSegmentListItem(list, seg, index, total, mode, {
+                        showTarget: true,
+                        showNote: true
+                    });
+                });
+                if (!count) list.innerHTML = '<div class="no-data" style="margin:12px;">Заметок пока нет.</div>';
+            } else if (mode === 'bookmarks') {
+                if (title) title.textContent = 'Закладки';
+                let count = 0;
+                projectData.segments.forEach((seg, index) => {
+                    if (!seg.bookmarked) return;
+                    count++;
+                    appendSegmentListItem(list, seg, index, total, mode, {
+                        prefix: '🔖 ',
+                        showTarget: true,
+                        showNote: true
+                    });
+                });
+                if (!count) list.innerHTML = '<div class="no-data" style="margin:12px;">Закладок пока нет.</div>';
+            }
+        }
+
+        function syncSidePanelWidth() {
+            const panel = document.getElementById('pending-panel');
+            const left = document.getElementById('left-panel');
+            if (!panel) return;
+            if (left && left.offsetWidth > 100) {
+                panel.style.width = left.offsetWidth + 'px';
+            } else {
+                panel.style.width = '70%';
+            }
+        }
+
+        function toggleSidePanel(mode) {
+            const panel = document.getElementById('pending-panel');
+            if (!panel) return;
+            if (mode === null) {
+                panel.classList.remove('open');
+                sidePanelMode = null;
+                return;
+            }
+            if (sidePanelMode === mode && panel.classList.contains('open')) {
+                panel.classList.remove('open');
+                sidePanelMode = null;
+                return;
+            }
+            sidePanelMode = mode;
+            syncSidePanelWidth();
+            panel.classList.add('open');
+            fillSidePanel(mode);
+        }
+
+        function jumpToSegment(index) {
+            const el = document.getElementById('seg-' + index);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('active');
+                setTimeout(() => el.classList.remove('active'), 1500);
+            }
+            toggleSidePanel(null);
+            closeJumpPopup();
+        }
+
+        function toggleJumpPopup() {
+            const pop = document.getElementById('jump-popup');
+            if (!pop) return;
+            const open = !pop.classList.contains('open');
+            pop.classList.toggle('open', open);
+            if (open) {
+                const inp = document.getElementById('jump-input');
+                const max = projectData.segments.length || 1;
+                inp.min = 1;
+                inp.max = max;
+                inp.placeholder = '1–' + max;
+                inp.value = '';
+                setTimeout(() => inp.focus(), 30);
+            }
+        }
+
+        function closeJumpPopup() {
+            const pop = document.getElementById('jump-popup');
+            if (pop) pop.classList.remove('open');
+        }
+
+        function jumpToSegmentByNumber() {
+            const inp = document.getElementById('jump-input');
+            const n = parseInt(inp.value, 10);
+            const total = projectData.segments.length;
+            if (!total) {
+                alert('Нет загруженных сегментов.');
+                return;
+            }
+            if (!n || n < 1 || n > total) {
+                alert('Введите номер от 1 до ' + total + '.');
+                inp.focus();
+                return;
+            }
+            jumpToSegment(n - 1);
+        }
+
+        document.getElementById('jump-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                jumpToSegmentByNumber();
+            } else if (e.key === 'Escape') {
+                closeJumpPopup();
+            }
+        });
+        document.addEventListener('mousedown', (e) => {
+            const fab = document.getElementById('jump-fab');
+            if (fab && !fab.contains(e.target)) closeJumpPopup();
+        });
+
+        // ========== ЗАМЕТКИ К СЕГМЕНТАМ ==========
+        let noteModalIndex = -1;
+
+        function openNoteModal(index) {
+            noteModalIndex = index;
+            const seg = projectData.segments[index];
+            document.getElementById('note-modal-title').textContent =
+                'Заметка к сегменту ' + (index + 1) + '-' + projectData.segments.length;
+            const ed = document.getElementById('note-modal-text');
+            const note = (seg && seg.note) ? seg.note : '';
+            if (note && /<[a-z][\s\S]*>/i.test(note)) ed.innerHTML = note;
+            else ed.textContent = note;
+            document.getElementById('note-modal').classList.add('open');
+            setTimeout(() => ed.focus(), 50);
+        }
+
+        function closeNoteModal() {
+            document.getElementById('note-modal').classList.remove('open');
+            noteModalIndex = -1;
+        }
+
+        function getNoteHtml() {
+            const ed = document.getElementById('note-modal-text');
+            const text = ed.textContent.replace(/\u00a0/g, ' ').trim();
+            if (!text) return '';
+            return ed.innerHTML.trim();
+        }
+
+        function saveSegmentNote() {
+            if (noteModalIndex < 0) return;
+            const text = getNoteHtml();
+            projectData.segments[noteModalIndex].note = text;
+            const idx = noteModalIndex;
+            closeNoteModal();
+            const segEl = document.getElementById('seg-' + idx);
+            if (segEl) {
+                const btn = segEl.querySelector('.note-btn');
+                if (btn) {
+                    const has = !!(text && text.replace(/<[^>]+>/g, '').trim());
+                    btn.classList.toggle('has-note', has);
+                    btn.title = has ? 'Заметка (есть)' : 'Добавить заметку';
+                    btn.innerHTML = (has ? '<span class="note-dot"></span>' : '') + 'Заметка';
+                }
+            }
+            updateProgressStats();
+        }
+
+        // Форматирование в поле заметки
+        function applyRichFormat(ed, cmd) {
+            if (!ed) return;
+            ed.focus();
+            if (cmd === 'hl-red' || cmd === 'hl-green' || cmd === 'hl-yellow') {
+                const cls = cmd === 'hl-red' ? 'hl-red' : (cmd === 'hl-green' ? 'hl-green' : 'hl-yellow');
+                const colors = { 'hl-red': '#fecaca', 'hl-green': '#bbf7d0', 'hl-yellow': '#fef08c' };
+                const sel = window.getSelection();
+                if (!sel.rangeCount || sel.isCollapsed) return;
+                let node = sel.anchorNode;
+                if (node && node.nodeType === 3) node = node.parentElement;
+                const existing = node && node.closest && node.closest('.' + cls);
+                if (existing && ed.contains(existing)) {
+                    const parent = existing.parentNode;
+                    while (existing.firstChild) parent.insertBefore(existing.firstChild, existing);
+                    parent.removeChild(existing);
+                    parent.normalize();
+                } else {
+                    try {
+                        const range = sel.getRangeAt(0);
+                        const span = document.createElement('span');
+                        span.className = cls;
+                        range.surroundContents(span);
+                    } catch (e) {
+                        document.execCommand('hiliteColor', false, colors[cls]);
+                    }
+                }
+            } else if (cmd === 'removeFormat') {
+                document.execCommand('removeFormat', false, null);
+                ed.querySelectorAll('.hl-red, .hl-green, .hl-yellow, .hl').forEach(span => {
+                    const parent = span.parentNode;
+                    while (span.firstChild) parent.insertBefore(span.firstChild, span);
+                    parent.removeChild(span);
+                });
+                ed.normalize();
+            } else {
+                document.execCommand(cmd, false, null);
+            }
+        }
+
+        function applyNoteFormat(cmd) {
+            applyRichFormat(document.getElementById('note-modal-text'), cmd);
+        }
+
+        document.getElementById('note-fmt-bar').addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-ncmd]');
+            if (!btn) return;
+            e.preventDefault();
+            applyNoteFormat(btn.getAttribute('data-ncmd'));
+        });
+
+        // Редактирование тибетского текста сегмента
+        function finishSourceEdit(index, sourceDiv, editBtn, cancelBtn, save) {
+            const seg = projectData.segments[index];
+            if (!seg) return;
+            const segEl = document.getElementById('seg-' + index);
+            const targetDiv = segEl ? segEl.querySelector('.target-line') : null;
+            const orig = editBtn.getAttribute('data-orig') || '';
+            const isNew = !!seg._isNew;
+
+            if (save) {
+                const text = sourceDiv.innerText.replace(/\u00a0/g, ' ').trim();
+                const tgtHtml = targetDiv ? getTargetHtml(targetDiv) : (seg.target || '');
+                const tgtPlain = tgtHtml.replace(/<[^>]+>/g, '').trim();
+                // Новая строка без текста — не сохраняем
+                if (isNew && !text && !tgtPlain) {
+                    projectData.segments.splice(index, 1);
+                    renderSegments();
+                    renderGlossaryList();
+                    return;
+                }
+                seg.source = text;
+                sourceDiv.setAttribute('data-raw', text);
+                if (targetDiv) seg.target = tgtHtml;
+                delete seg._isNew;
+            } else {
+                if (isNew) {
+                    // Отмена создания новой строки
+                    projectData.segments.splice(index, 1);
+                    renderSegments();
+                    renderGlossaryList();
+                    return;
+                }
+                sourceDiv.setAttribute('data-raw', orig);
+                seg.source = orig;
+            }
+
+            sourceDiv.contentEditable = 'false';
+            sourceDiv.classList.remove('editing-src');
+            if (segEl) segEl.classList.remove('seg-editing');
+            editBtn.classList.remove('editing');
+            editBtn.textContent = 'Редактировать';
+            editBtn.removeAttribute('data-orig');
+            if (cancelBtn) cancelBtn.remove();
+            applyGlossaryHighlight();
+            updateProgressStats();
+        }
+
+        function toggleSourceEdit(index, sourceDiv, editBtn) {
+            const editing = sourceDiv.contentEditable === 'true';
+            const side = editBtn.parentElement;
+            const segEl = document.getElementById('seg-' + index);
+            if (editing) {
+                const cancelBtn = side ? side.querySelector('.cancel-edit-btn') : null;
+                finishSourceEdit(index, sourceDiv, editBtn, cancelBtn, true);
+            } else {
+                const raw = sourceDiv.getAttribute('data-raw') || projectData.segments[index].source || '';
+                editBtn.setAttribute('data-orig', raw);
+                sourceDiv.textContent = raw;
+                sourceDiv.contentEditable = 'true';
+                sourceDiv.classList.add('editing-src');
+                if (segEl) segEl.classList.add('seg-editing');
+                editBtn.classList.add('editing');
+                editBtn.textContent = 'Готово';
+                let cancelBtn = side && side.querySelector('.cancel-edit-btn');
+                if (!cancelBtn && side) {
+                    cancelBtn = document.createElement('button');
+                    cancelBtn.type = 'button';
+                    cancelBtn.className = 'edit-src-btn cancel-edit-btn';
+                    cancelBtn.textContent = 'Отменить';
+                    cancelBtn.title = 'Отменить правку';
+                    cancelBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        finishSourceEdit(index, sourceDiv, editBtn, cancelBtn, false);
+                    };
+                    editBtn.insertAdjacentElement('afterend', cancelBtn);
+                }
+                sourceDiv.focus();
+                // Курсор в конец для удобства
+                try {
+                    const range = document.createRange();
+                    range.selectNodeContents(sourceDiv);
+                    range.collapse(false);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                } catch (e) {}
+            }
+        }
+
+        // Управление словарями (клик по бейджу)
+        function toggleDictManage(e) {
+            if (e) e.stopPropagation();
+            const panel = document.getElementById('dict-manage-panel');
+            if (!panel) return;
+            if (panel.classList.contains('open')) {
+                closeDictManage();
+            } else {
+                fillDictManage();
+                panel.classList.add('open');
+            }
+        }
+
+        function closeDictManage() {
+            const panel = document.getElementById('dict-manage-panel');
+            if (panel) panel.classList.remove('open');
+        }
+
+        function fillDictManage() {
+            const list = document.getElementById('dict-manage-list');
+            if (!list) return;
+            list.innerHTML = '';
+            if (!loadedDictNames.length) {
+                list.innerHTML = '<div class="dict-manage-empty">Нет подгруженных словарей</div>';
+                return;
+            }
+            loadedDictNames.forEach(name => {
+                const disabled = disabledDictNames.indexOf(name) !== -1;
+                const row = document.createElement('div');
+                row.className = 'dict-manage-item' + (disabled ? ' disabled-dict' : '');
+                const n = getDictDisplayCount(name);
+                row.innerHTML =
+                    '<label>' +
+                    '<input type="checkbox" ' + (disabled ? '' : 'checked') +
+                    ' onchange="toggleDictEnabled(\'' + name.replace(/'/g, "\\'") + '\', this.checked)">' +
+                    '<span>' + escapeHtml(name) + ' <span style="color:#94a3b8;">(' + n + ')</span></span>' +
+                    '</label>' +
+                    '<button type="button" class="dict-del" onclick="removeDictionary(\'' +
+                    name.replace(/'/g, "\\'") + '\')">Удалить</button>';
+                list.appendChild(row);
+            });
+        }
+
+        function toggleDictEnabled(name, enabled) {
+            const i = disabledDictNames.indexOf(name);
+            if (enabled && i !== -1) disabledDictNames.splice(i, 1);
+            if (!enabled && i === -1) disabledDictNames.push(name);
+            renderGlossaryList();
+            applyGlossaryHighlight();
+            fillDictManage();
+        }
+
+        function removeDictionary(name) {
+            if (!confirm('Удалить словарь «' + name + '» из проекта? Записи этого словаря будут убраны из глоссария.')) return;
+            // Удалить все статьи с этим src
+            Object.keys(projectData.glossary).forEach(word => {
+                projectData.glossary[word] = projectData.glossary[word].filter(item => item.src !== name);
+                if (!projectData.glossary[word].length) delete projectData.glossary[word];
+            });
+            loadedDictNames = loadedDictNames.filter(n => n !== name);
+            delete loadedDictCounts[name];
+            disabledDictNames = disabledDictNames.filter(n => n !== name);
+            renderGlossaryList();
+            applyGlossaryHighlight();
+            fillDictManage();
+        }
+
+        document.addEventListener('mousedown', (e) => {
+            const panel = document.getElementById('dict-manage-panel');
+            const badge = document.getElementById('dicts-badge');
+            if (panel && panel.classList.contains('open') &&
+                !panel.contains(e.target) && badge && !badge.contains(e.target)) {
+                closeDictManage();
+            }
+        });
+
+        function clearSegmentNote() {
+            if (noteModalIndex < 0) return;
+            document.getElementById('note-modal-text').innerHTML = '';
+            projectData.segments[noteModalIndex].note = '';
+            saveSegmentNote();
+        }
+
+        document.getElementById('note-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'note-modal') closeNoteModal();
+        });
+
+        // ========== ЗАГРУЗКА TXT ==========
+        function loadTxtFile(input) {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split(/\r?\n/);
+                
+                projectData.segments = lines
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(line => ({ source: line, target: '', confirmed: false, note: '', bookmarked: false }));
+
+                projectData.glossary = {};
+                loadedDictNames = [];
+                loadedDictCounts = {};
+                renderSegments();
+                renderGlossaryList();
+            };
+            reader.readAsText(files[0], 'UTF-8');
+            input.value = '';
+        }
+
+        // ========== ЗАГРУЗКА СЛОВАРЯ (можно несколько файлов сразу) ==========
+        function mergeDictIntoProject(incomingDict, filename) {
+            let added = 0;
+            let skipped = 0;
+            let fileTotal = 0;
+            const srcCounts = {};
+            for (let word in incomingDict) {
+                if (!Object.prototype.hasOwnProperty.call(incomingDict, word)) continue;
+                if (!projectData.glossary[word]) projectData.glossary[word] = [];
+                const items = Array.isArray(incomingDict[word]) ? incomingDict[word] : [incomingDict[word]];
+                items.forEach(def => {
+                    fileTotal++;
+                    let defText, srcName;
+                    if (typeof def === 'object' && def !== null) {
+                        defText = def.txt != null ? String(def.txt) : JSON.stringify(def);
+                        srcName = def.src ? String(def.src) : filename;
+                    } else {
+                        defText = String(def);
+                        srcName = filename;
+                    }
+                    const alreadyExists = projectData.glossary[word].some(
+                        item => item.txt === defText && item.src === srcName
+                    );
+                    if (alreadyExists) { skipped++; return; }
+                    projectData.glossary[word].push({ txt: defText, src: srcName });
+                    srcCounts[srcName] = (srcCounts[srcName] || 0) + 1;
+                    added++;
+                });
+            }
+            Object.keys(srcCounts).forEach(src => {
+                loadedDictCounts[src] = (loadedDictCounts[src] || 0) + srcCounts[src];
+                if (!loadedDictNames.includes(src)) loadedDictNames.push(src);
+            });
+            if (!Object.keys(srcCounts).length) {
+                loadedDictCounts[filename] = (loadedDictCounts[filename] || 0) + fileTotal;
+                if (!loadedDictNames.includes(filename)) loadedDictNames.push(filename);
+            }
+            return { added, skipped, fileTotal };
+        }
+
+        function loadDictionaryFile(input) {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+
+            let chain = Promise.resolve({ added: 0, skipped: 0, names: [] });
+            Array.from(files).forEach(file => {
+                chain = chain.then(acc => new Promise((resolve) => {
+                    const filename = file.name.replace(/\.tdict$/i, '');
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const incomingDict = JSON.parse(e.target.result);
+                            const r = mergeDictIntoProject(incomingDict, filename);
+                            acc.added += r.added;
+                            acc.skipped += r.skipped;
+                            acc.names.push(filename + ' (' + r.fileTotal + ')');
+                        } catch (err) {
+                            alert('Ошибка «' + filename + '»: ' + err.message);
+                        }
+                        resolve(acc);
+                    };
+                    reader.readAsText(file, 'UTF-8');
+                }));
+            });
+            chain.then(acc => {
+                renderGlossaryList();
+                applyGlossaryHighlight();
+                alert('Загружено словарей: ' + acc.names.length +
+                    '\n' + acc.names.join('\n') +
+                    '\nДобавлено записей: ' + acc.added +
+                    (acc.skipped ? '\nДубликатов пропущено: ' + acc.skipped : ''));
+            });
+            input.value = '';
+        }
+
+        // ========== МЕТКА ДАТЫ/ВРЕМЕНИ ДЛЯ ИМЁН ФАЙЛОВ ==========
+        function getTimestampPrefix() {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' +
+                   pad(d.getMonth() + 1) + '-' +
+                   pad(d.getDate()) + '_' +
+                   pad(d.getHours()) + '-' +
+                   pad(d.getMinutes()) + '-' +
+                   pad(d.getSeconds()) + '_';
+        }
+
+        // ========== СОХРАНЕНИЕ ТЕКУЩЕГО СЛОВАРЯ ==========
+        // Только записи, созданные в этом проекте (src === "Проект книги"),
+        // без статей из подгруженных пользовательских словарей.
+        function saveCurrentDictionary() {
+            const dictExport = {};
+            let count = 0;
+
+            for (const word of Object.keys(projectData.glossary)) {
+                const projectOnly = projectData.glossary[word]
+                    .filter(item => item.src === 'Проект книги')
+                    .map(item => item.txt);
+                if (projectOnly.length > 0) {
+                    dictExport[word] = projectOnly;
+                    count += projectOnly.length;
+                }
+            }
+
+            if (count === 0) {
+                alert('В проекте нет своих словарных записей для сохранения.\n(Записи из подгруженных словарей не включаются.)');
+                return;
+            }
+
+            const dictString = JSON.stringify(dictExport, null, 2);
+            downloadFile(dictString, getTimestampPrefix() + 'dictionary.tdict', 'application/json;charset=utf-8');
+        }
+
+        // ========== СОХРАНЕНИЕ / ЗАГРУЗКА ПРОЕКТА ==========
+        function exportProject() {
+            const targetNodes = document.querySelectorAll('.target-line');
+            targetNodes.forEach((node, idx) => {
+                if (projectData.segments[idx]) {
+                    projectData.segments[idx].target = getTargetHtml(node);
+                }
+            });
+
+            if (projectData.segments.length === 0 && Object.keys(projectData.glossary).length === 0) {
+                alert('Проект пуст, нечего сохранять!');
+                return;
+            }
+
+            const fullData = {
+                ...projectData,
+                loadedDictNames: loadedDictNames,
+                loadedDictCounts: loadedDictCounts
+            };
+
+            const projectString = JSON.stringify(fullData, null, 2);
+            downloadFile(projectString, getTimestampPrefix() + 'project.tcat', 'application/json;charset=utf-8');
+            markProjectSaved();
+        }
+
+        function loadProjectFile(input) {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    
+                    if (parsedData && parsedData.segments && parsedData.glossary) {
+                        projectData = {
+                            segments: parsedData.segments.map(s => ({
+                                source: s.source || '',
+                                target: s.target || '',
+                                confirmed: !!s.confirmed,
+                                note: s.note || '',
+                                bookmarked: !!s.bookmarked
+                            })),
+                            glossary: parsedData.glossary
+                        };
+                        
+                        if (Array.isArray(parsedData.loadedDictNames)) {
+                            loadedDictNames = parsedData.loadedDictNames;
+                        } else {
+                            const sources = new Set();
+                            for (let word in projectData.glossary) {
+                                projectData.glossary[word].forEach(item => {
+                                    if (item.src && item.src !== 'Проект книги') sources.add(item.src);
+                                });
+                            }
+                            loadedDictNames = [...sources];
+                        }
+
+                        if (parsedData.loadedDictCounts && typeof parsedData.loadedDictCounts === 'object') {
+                            loadedDictCounts = parsedData.loadedDictCounts;
+                        } else {
+                            // Восстанавливаем счётчики из живых данных
+                            loadedDictCounts = {};
+                            const live = getSourceCounts();
+                            loadedDictNames.forEach(name => {
+                                loadedDictCounts[name] = live[name] || 0;
+                            });
+                        }
+
+                        renderSegments();
+                        renderGlossaryList();
+                    } else {
+                        alert('Неверная структура файла проекта .tcat');
+                    }
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                }
+            };
+            reader.readAsText(files[0], 'UTF-8');
+            input.value = '';
+        }
+
+        // ========== ЭКСПОРТ ПЕРЕВОДА (HTML-страница) ==========
+        function exportPureTranslation() {
+            const targetNodes = document.querySelectorAll('.target-line');
+            targetNodes.forEach((node, idx) => {
+                if (projectData.segments[idx]) {
+                    projectData.segments[idx].target = getTargetHtml(node);
+                }
+            });
+
+            if (projectData.segments.length === 0) {
+                alert('Нет сегментов для экспорта!');
+                return;
+            }
+
+            const total = projectData.segments.length;
+            let segmentsHtml = '';
+            projectData.segments.forEach((seg, index) => {
+                const confirmed = seg.confirmed ? ' confirmed' : '';
+                let target;
+                if (!seg.target || !String(seg.target).replace(/<[^>]+>/g, '').trim()) {
+                    target = '<span class="empty">—</span>';
+                } else if (/<[a-z][\s\S]*>/i.test(seg.target)) {
+                    // Сохраняем форматирование (HTML из contentEditable)
+                    target = seg.target;
+                } else {
+                    target = escapeHtml(seg.target);
+                }
+                segmentsHtml +=
+                    '<div class="segment' + confirmed + '">' +
+                    '<span class="seg-num">' + (index + 1) + '-' + total + '</span>' +
+                    '<div class="seg-body">' +
+                    '<div class="src" data-role="source">' + escapeHtml(seg.source) + '</div>' +
+                    '<div class="tgt" data-role="target">' + target + '</div>' +
+                    '</div></div>';
+            });
+
+            const htmlPage = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Перевод — Tibetan CAT Export</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Tibetan:wght@400;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#4f46e5; --border:#e2e8f0; --muted:#64748b; --accent:#d97706; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Serif', serif; background: #f8fafc; color: #0f172a; min-height: 100vh; }
+  .top-bar {
+    position: sticky; top: 0; z-index: 50;
+    height: 56px; background: #1e293b; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1);
+    gap: 12px;
+  }
+  .logo { font-size: 16px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+  .logo span { color: var(--accent); }
+  .controls {
+    display: flex; flex-wrap: nowrap; gap: 6px; align-items: center;
+    overflow-x: auto; justify-content: flex-end;
+  }
+  .controls button {
+    background: #334155; color: #fff; border: 1px solid #475569;
+    padding: 7px 12px; border-radius: 6px; cursor: pointer;
+    font-size: 12px; font-weight: 500; font-family: sans-serif; white-space: nowrap;
+  }
+  .controls button:hover { background: #475569; }
+  .controls button.primary { background: #4f46e5; border-color: #4f46e5; }
+  .controls button.primary:hover { background: #4338ca; }
+  .controls button.green { background: #10b981; border-color: #10b981; }
+  .controls button.green:hover { background: #059669; }
+  .workspace {
+    max-width: 800px; margin: 0 auto; padding: 40px 24px 80px;
+  }
+  .toast {
+    display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #059669; color: #fff; padding: 10px 20px; border-radius: 8px;
+    font-family: sans-serif; font-size: 13px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  }
+  .segment { display: flex; gap: 0; margin-bottom: 32px; }
+  .seg-num { font-size: 11px; color: var(--muted); font-family: monospace; width: 42px; text-align: right; padding: 8px 10px 0 0; flex-shrink: 0; }
+  .seg-body { flex: 1; border-left: 4px solid var(--border); padding: 6px 0 6px 18px; }
+  .segment.confirmed .seg-body { border-left-color: #10b981; }
+  .src { font-size: 24px; line-height: 1.9; font-family: 'Noto Serif Tibetan', serif; margin-bottom: 10px; }
+  .tgt { font-size: 16px; line-height: 1.6; color: #334155; }
+  .tgt .empty { color: #94a3b8; font-style: italic; }
+  .tgt b, .tgt strong { font-weight: 700; }
+  .tgt i, .tgt em { font-style: italic; }
+  .tgt u { text-decoration: underline; }
+  .tgt .hl { background-color: #fef08c; border-radius: 2px; }
+  .tgt div, .tgt p { text-indent: 1.5em; margin: 0.25em 0 0; }
+  .src.sel, .tgt.sel { outline: 2px solid var(--primary); outline-offset: 2px; background: #eef2ff; border-radius: 4px; }
+  .footer { text-align: center; color: var(--muted); font-size: 12px; padding: 24px; font-family: sans-serif; }
+</style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="logo">Tibetan <span>CAT</span> — экспорт</div>
+    <div class="controls">
+      <button class="primary" onclick="copyRole('source')">Копировать тибетский</button>
+      <button class="primary" onclick="copyRole('target')">Копировать перевод</button>
+      <button class="green" onclick="copyAll()">Копировать всё</button>
+      <button onclick="selectRole('source')">Выделить тибетский</button>
+      <button onclick="selectRole('target')">Выделить перевод</button>
+      <button onclick="clearSel()">Снять выделение</button>
+    </div>
+  </div>
+  <div class="workspace" id="content">${segmentsHtml}</div>
+  <div class="footer">Tibetan CAT Studio · aka Shoy · свободная лицензия</div>
+  <div class="toast" id="toast">Скопировано</div>
+<script>
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 1800);
+  }
+  function clearSel() {
+    document.querySelectorAll('.src.sel, .tgt.sel').forEach(el => el.classList.remove('sel'));
+  }
+  function selectRole(role) {
+    clearSel();
+    document.querySelectorAll('[data-role="'+role+'"]').forEach(el => el.classList.add('sel'));
+  }
+  function copyRole(role) {
+    const nodes = document.querySelectorAll('[data-role="'+role+'"]');
+    const lines = Array.from(nodes).map(n => n.innerText.trim()).filter(Boolean);
+    const text = lines.join('\\n');
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(role === 'source' ? 'Тибетский текст скопирован (' + lines.length + ')' : 'Перевод скопирован (' + lines.length + ')');
+      selectRole(role);
+    }).catch(() => {
+      fallbackCopy(text);
+      showToast('Скопировано');
+    });
+  }
+  function copyAll() {
+    const segs = document.querySelectorAll('.segment');
+    const parts = [];
+    segs.forEach(s => {
+      const src = s.querySelector('.src');
+      const tgt = s.querySelector('.tgt');
+      if (src) parts.push(src.innerText.trim());
+      if (tgt) {
+        const t = tgt.innerText.trim();
+        if (t && t !== '—') parts.push(t);
+      }
+      parts.push('');
+    });
+    const text = parts.join('\\n');
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Всё скопировано');
+      clearSel();
+      document.querySelectorAll('.src, .tgt').forEach(el => el.classList.add('sel'));
+    }).catch(() => {
+      fallbackCopy(text);
+      showToast('Скопировано');
+    });
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+<\/script>
+</body>
+</html>`;
+
+            downloadFile(htmlPage, getTimestampPrefix() + 'translation.html', 'text/html;charset=utf-8');
+        }
+
+        function downloadFile(content, fileName, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ========== СПРАВКА ==========
+        function openHelp() {
+            document.getElementById('help-modal').classList.add('open');
+        }
+        function closeHelp() {
+            document.getElementById('help-modal').classList.remove('open');
+        }
+        // Закрытие по клику на фон или Escape
+        document.getElementById('help-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'help-modal') closeHelp();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeHelp();
+                toggleSidePanel(null);
+                closeNoteModal();
+                closeDictManage();
+                closeJumpPopup();
+                closePopover();
+            }
+        });
+
+        // ========== НАПОМИНАНИЕ О СОХРАНЕНИИ (каждые 10 мин) ==========
+        const SAVE_REMIND_MS = 10 * 60 * 1000;
+        let lastProjectSaveAt = Date.now();
+        let saveReminderTimer = null;
+
+        function hasProjectData() {
+            return projectData.segments.length > 0 || Object.keys(projectData.glossary).length > 0;
+        }
+
+        function markProjectSaved() {
+            lastProjectSaveAt = Date.now();
+            dismissSaveReminder();
+        }
+
+        function showSaveReminder() {
+            if (!hasProjectData()) return;
+            const el = document.getElementById('save-reminder');
+            if (el) el.classList.add('open');
+        }
+
+        function dismissSaveReminder() {
+            const el = document.getElementById('save-reminder');
+            if (el) el.classList.remove('open');
+            // следующий цикл отсчёта — снова через 10 мин
+            lastProjectSaveAt = Date.now();
+        }
+
+        function saveProjectFromReminder() {
+            dismissSaveReminder();
+            exportProject();
+        }
+
+        function tickSaveReminder() {
+            if (!hasProjectData()) return;
+            if (Date.now() - lastProjectSaveAt >= SAVE_REMIND_MS) {
+                showSaveReminder();
+            }
+        }
+
+        saveReminderTimer = setInterval(tickSaveReminder, 30 * 1000); // проверка раз в 30 сек
+
+        // Сброс таймера при загрузке проекта / текста
+        const _origLoadTxt = typeof loadTxtFile === 'function' ? loadTxtFile : null;
+        // lastProjectSaveAt обновим при успешной загрузке проекта
+        document.getElementById('project-input').addEventListener('change', () => {
+            setTimeout(() => { lastProjectSaveAt = Date.now(); }, 500);
+        });
+
+        // ========== ПРЕДУПРЕЖДЕНИЕ ПРИ ЗАКРЫТИИ ВКЛАДКИ ==========
+        window.addEventListener('beforeunload', (e) => {
+            if (hasProjectData()) {
+                e.preventDefault();
+                e.returnValue = 'Вы покидаете сессию. Сохранили ли вы проект (.tcat)? Несохранённые переводы и глоссарий будут потеряны.';
+                return e.returnValue;
+            }
+        });
+    </script>
+</body>
+</html>
