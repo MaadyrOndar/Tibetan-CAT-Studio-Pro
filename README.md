@@ -4,8 +4,8 @@
 
 В репозиторий уже включены демонстрационные файлы для быстрого старта: пример словаря, пример рабочего проекта и полный построчный тибетский текст **«Ламрим Сершунма»**.
 
-### 🌐 [Открыть Tibetan CAT Studio Pro онлайн](https://maadyrondar.github.io/Tibetan-CAT-Studio-Pro/)
-### 📖 [Открыть редактор словарей (dict_editor)](https://github.io)
+> 🌐 **Онлайн-версия программы:** [Запустить Tibetan CAT Studio Pro](https://maadyrondar.github.io/Tibetan-CAT-Studio-Pro/)  
+> 📖 **Редактор словарей:** [Открыть dict_editor.html](https://github.io)
 
 
 
